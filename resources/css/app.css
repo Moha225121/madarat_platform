@@ -1,0 +1,131 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    body {
+        direction: rtl;
+        background: #f4f7fa;
+        color: #102a43;
+        font-family: Tajawal, Cairo, Figtree, ui-sans-serif, system-ui, sans-serif;
+    }
+}
+
+@layer components {
+    .madarat-shell {
+        background:
+            radial-gradient(circle at 8% 18%, rgba(24, 183, 200, 0.16), transparent 26rem),
+            radial-gradient(circle at 84% 8%, rgba(11, 79, 122, 0.12), transparent 24rem),
+            linear-gradient(180deg, #ffffff 0%, #f4f7fa 46%, #eaf8fb 100%);
+    }
+
+    .madarat-robot-float {
+        animation: madarat-robot-float 3.4s ease-in-out infinite;
+    }
+
+    .madarat-robot-wave {
+        transform-origin: 25% 80%;
+        animation: madarat-robot-wave 1.8s ease-in-out infinite;
+    }
+
+    .madarat-robot-point {
+        transform-origin: 50% 100%;
+        animation: madarat-robot-point 1.8s ease-in-out infinite;
+    }
+
+    .madarat-robot-antenna {
+        animation: madarat-robot-antenna 1.8s ease-in-out infinite;
+    }
+
+    .madarat-robot-eye {
+        animation: madarat-robot-eye 4.2s ease-in-out infinite;
+    }
+}
+
+@keyframes madarat-robot-float {
+    0%,
+    100% {
+        transform: translateY(0) rotate(-1deg);
+    }
+    50% {
+        transform: translateY(-6px) rotate(1deg);
+    }
+}
+
+@keyframes madarat-robot-wave {
+    0%,
+    100% {
+        transform: rotate(24deg);
+    }
+    50% {
+        transform: rotate(43deg);
+    }
+}
+
+@keyframes madarat-robot-point {
+    0%,
+    100% {
+        transform: rotate(-24deg) translateY(0);
+    }
+    50% {
+        transform: rotate(-36deg) translateY(-3px);
+    }
+}
+
+@keyframes madarat-robot-antenna {
+    0%,
+    100% {
+        box-shadow: 0 0 0 rgba(24, 183, 200, 0.25);
+    }
+    50% {
+        box-shadow: 0 0 14px rgba(24, 183, 200, 0.75);
+    }
+}
+
+@keyframes madarat-robot-eye {
+    0%,
+    88%,
+    100% {
+        transform: scaleY(1);
+    }
+    92% {
+        transform: scaleY(0.18);
+    }
+}
+
+@page {
+    size: A4;
+    margin: 0;
+}
+
+@media print {
+    body.cv-printing {
+        background: white;
+    }
+
+    body.cv-printing * {
+        visibility: hidden;
+    }
+
+    body.cv-printing .cv-print-area,
+    body.cv-printing .cv-print-area * {
+        visibility: visible;
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
+    }
+
+    body.cv-printing .cv-print-area {
+        position: absolute;
+        inset: 0;
+        width: 210mm;
+        min-height: 297mm;
+        max-width: none;
+        box-shadow: none;
+        border: 0;
+        ring-width: 0;
+    }
+
+    body.cv-printing .cv-no-print {
+        display: none !important;
+    }
+}

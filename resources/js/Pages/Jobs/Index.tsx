@@ -1,0 +1,7 @@
+import { useForm } from '@inertiajs/react';
+import { AppLayout, EmptyState, Job, JobCard } from '@/Components/Madarat';
+
+export default function JobsIndex({ jobs, filters }: { jobs: Job[]; filters: any }) {
+    const { data, setData, get } = useForm({ search: filters.search || '', location: filters.location || '', job_type: filters.job_type || '', experience_level: filters.experience_level || '' });
+    return <AppLayout><div className="mb-6"><h1 className="text-2xl font-black text-madarat-navy">تصفح الوظائف</h1><form onSubmit={(e) => { e.preventDefault(); get('/jobs'); }} className="mt-4 grid gap-3 rounded-lg bg-white p-4 shadow-sm md:grid-cols-4"><input value={data.search} onChange={(e) => setData('search', e.target.value)} placeholder="العنوان أو الشركة" className="rounded-lg border-slate-200" /><input value={data.location} onChange={(e) => setData('location', e.target.value)} placeholder="الموقع" className="rounded-lg border-slate-200" /><input value={data.job_type} onChange={(e) => setData('job_type', e.target.value)} placeholder="نوع العمل" className="rounded-lg border-slate-200" /><input value={data.experience_level} onChange={(e) => setData('experience_level', e.target.value)} placeholder="مستوى الخبرة" className="rounded-lg border-slate-200" /></form></div>{jobs.length ? <div className="grid gap-4 md:grid-cols-3">{jobs.map((job) => <JobCard key={job.id} job={job} />)}</div> : <EmptyState title="لا توجد وظائف" text="جرّب تعديل كلمات البحث أو الفلاتر." />}</AppLayout>;
+}
