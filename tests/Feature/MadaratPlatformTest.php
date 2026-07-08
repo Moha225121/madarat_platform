@@ -61,7 +61,45 @@ class MadaratPlatformTest extends TestCase
             'status' => 'published',
         ])->assertRedirect();
 
-        $this->assertDatabaseHas('jobs', ['title' => 'مطور نظم', 'status' => 'published']);
+        $this->assertDatabaseHas('jobs', ['title' => 'مطور نظم', 'status' => 'pending_review']);
+    }
+
+    public function test_verified_employer_jobs_are_published_immediately(): void
+    {
+        $user = User::factory()->create(['role' => 'employer']);
+        CompanyProfile::create([
+            'user_id' => $user->id,
+            'company_name' => 'شركة موثقة',
+            'verification_status' => 'verified',
+        ]);
+
+        $this->actingAs($user)->post('/employer/jobs', [
+            'title' => 'مطور أول',
+            'description' => 'وصف وظيفي واضح ومناسب.',
+            'required_skills' => 'Laravel, SQL',
+            'status' => 'published',
+        ])->assertRedirect();
+
+        $this->assertDatabaseHas('jobs', ['title' => 'مطور أول', 'status' => 'published']);
+    }
+
+    public function test_employer_can_save_job_as_draft_regardless_of_verification(): void
+    {
+        $user = User::factory()->create(['role' => 'employer']);
+        CompanyProfile::create([
+            'user_id' => $user->id,
+            'company_name' => 'شركة موثقة',
+            'verification_status' => 'verified',
+        ]);
+
+        $this->actingAs($user)->post('/employer/jobs', [
+            'title' => 'وظيفة مسودة',
+            'description' => 'وصف وظيفي واضح ومناسب.',
+            'required_skills' => 'Laravel, SQL',
+            'status' => 'draft',
+        ])->assertRedirect();
+
+        $this->assertDatabaseHas('jobs', ['title' => 'وظيفة مسودة', 'status' => 'draft']);
     }
 
     public function test_job_seeker_can_apply_to_published_job_and_duplicate_is_blocked(): void

@@ -23,11 +23,6 @@ const options = {
     jobTypes: ['دوام كامل', 'دوام جزئي', 'عن بعد', 'هجين', 'تعاقد'],
     contractTypes: ['عقد سنوي', 'عقد مؤقت', 'مشروع مستقل', 'تدريب', 'غير محدد'],
     levels: ['مبتدئ', 'متوسط', 'خبير', 'إدارة'],
-    statuses: [
-        ['draft', 'مسودة'],
-        ['pending_review', 'بانتظار المراجعة'],
-        ['published', 'منشورة'],
-    ] as const,
 };
 
 function Field({ label, error, children, hint }: { label: string; error?: string; children: ReactNode; hint?: string }) {
@@ -52,7 +47,7 @@ function SectionTitle({ icon: Icon, title }: { icon: any; title: string }) {
     );
 }
 
-export default function JobForm({ job }: any) {
+export default function JobForm({ job, companyVerified = false }: any) {
     const isEdit = Boolean(job);
     const [generated, setGenerated] = useState(false);
     const [generating, setGenerating] = useState(false);
@@ -77,7 +72,11 @@ export default function JobForm({ job }: any) {
 
     const submit = (event: FormEvent) => {
         event.preventDefault();
-        const payload = normalizePayload(data);
+        submitWithStatus('published');
+    };
+
+    const submitWithStatus = (status: JobFormData['status']) => {
+        const payload = { ...normalizePayload(data), status };
 
         if (isEdit) {
             router.put(`/employer/jobs/${job.id}`, payload);
@@ -176,12 +175,11 @@ export default function JobForm({ job }: any) {
                     <Card className="sticky top-24">
                         <SectionTitle icon={CheckCircle2} title="النشر" />
                         <div className="space-y-3">
-                            <div className="grid gap-2">
-                                {options.statuses.map(([value, label]) => (
-                                    <button key={value} type="button" onClick={() => setData('status', value)} className={`rounded-lg border px-3 py-2 text-sm font-bold transition ${data.status === value ? 'border-madarat-cyan bg-madarat-sky text-madarat-blue' : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'}`}>
-                                        {label}
-                                    </button>
-                                ))}
+                            <div className="rounded-lg bg-slate-50 p-4 text-sm leading-7 text-slate-600">
+                                {companyVerified
+                                    ? 'شركتك موثقة، سيتم نشر الوظيفة مباشرة عند الإرسال.'
+                                    : 'شركتك غير موثقة بعد، سيتم إرسال الوظيفة للمراجعة قبل النشر.'}
+                                <span className="mt-2 block font-bold text-madarat-navy">يمكنك حفظ الوظيفة كمسودة في أي وقت.</span>
                             </div>
                             {errors.status && <p className="text-xs font-bold text-red-600">{errors.status}</p>}
                         </div>
@@ -194,9 +192,14 @@ export default function JobForm({ job }: any) {
                             <p>الخبرة: {data.experience_level}</p>
                         </div>
 
-                        <Button disabled={processing} className="mt-5 w-full">
+                        <Button type="button" disabled={processing} onClick={() => submitWithStatus('draft')} className="mt-5 w-full bg-slate-600 hover:bg-slate-700">
                             <Save className="h-4 w-4" />
-                            {processing ? 'جار الحفظ...' : isEdit ? 'تحديث الوظيفة' : 'حفظ الوظيفة'}
+                            {processing ? 'جار الحفظ...' : 'حفظ كمسودة'}
+                        </Button>
+
+                        <Button disabled={processing} className="mt-3 w-full">
+                            <Save className="h-4 w-4" />
+                            {processing ? 'جار الحفظ...' : companyVerified ? 'نشر الوظيفة' : 'إرسال للمراجعة'}
                         </Button>
                     </Card>
                 </aside>

@@ -60,7 +60,12 @@ class JobController extends Controller
 
     public function create(): Response
     {
-        return Inertia::render('Employer/JobForm', ['job' => null]);
+        $company = request()->user()->companyProfile;
+
+        return Inertia::render('Employer/JobForm', [
+            'job' => null,
+            'companyVerified' => $company?->isVerified() ?? false,
+        ]);
     }
 
     public function store(StoreJobRequest $request): RedirectResponse
@@ -76,6 +81,7 @@ class JobController extends Controller
         $data = $this->normalizedJobData($request->validated());
         $data['company_profile_id'] = $company->id;
         $data['slug'] = $this->uniqueSlug($data['title']);
+        $data['status'] = $this->resolvedStatus($data['status'], $company);
 
         $job = Job::create($data);
 
@@ -86,13 +92,19 @@ class JobController extends Controller
     {
         abort_unless($job->companyProfile->user_id === $request->user()->id, 403);
 
-        return Inertia::render('Employer/JobForm', ['job' => $job]);
+        return Inertia::render('Employer/JobForm', [
+            'job' => $job,
+            'companyVerified' => $job->companyProfile->isVerified(),
+        ]);
     }
 
     public function update(StoreJobRequest $request, Job $job): RedirectResponse
     {
         abort_unless($job->companyProfile->user_id === $request->user()->id, 403);
-        $job->update($this->normalizedJobData($request->validated()));
+        $data = $this->normalizedJobData($request->validated());
+        $data['status'] = $this->resolvedStatus($data['status'], $job->companyProfile);
+
+        $job->update($data);
 
         return back()->with('success', 'تم تحديث الوظيفة.');
     }
@@ -134,5 +146,14 @@ class JobController extends Controller
         }
 
         return $slug;
+    }
+
+    private function resolvedStatus(string $requestedStatus, CompanyProfile $company): string
+    {
+        if ($requestedStatus === 'draft') {
+            return 'draft';
+        }
+
+        return $company->isVerified() ? 'published' : 'pending_review';
     }
 }
