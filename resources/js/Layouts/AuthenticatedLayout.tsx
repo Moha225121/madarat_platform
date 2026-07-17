@@ -41,6 +41,17 @@ export default function Authenticated({
                                 >
                                     لوحة التحكم
                                 </NavLink>
+                                {user.role === 'training_provider' && <>
+                                    <NavLink href="/training/profile" active={route().current('training.profile')}>الملف التعريفي</NavLink>
+                                    <NavLink href="/training/courses" active={route().current('training.courses.*')}>دوراتي</NavLink>
+                                    <NavLink href="/training/courses/create" active={route().current('training.courses.create')}>إضافة دورة</NavLink>
+                                </>}
+                                {user.role === 'job_seeker' && <>
+                                    <NavLink href="/courses" active={route().current('courses.*')}>الدورات</NavLink>
+                                    <NavLink href="/seeker/courses/recommended" active={route().current('seeker.courses.recommended')}>مقترحة لك</NavLink>
+                                    <NavLink href="/seeker/courses/saved" active={route().current('seeker.courses.saved')}>المحفوظة</NavLink>
+                                </>}
+                                {user.role === 'admin' && <NavLink href="/admin/training" active={route().current('admin.training.*')}>إدارة التدريب</NavLink>}
                             </div>
                         </div>
 

@@ -4,9 +4,12 @@ namespace Database\Seeders;
 
 use App\Models\Application;
 use App\Models\CompanyProfile;
+use App\Models\CourseUserFeedback;
 use App\Models\InterviewInvitation;
 use App\Models\Job;
 use App\Models\JobSeekerProfile;
+use App\Models\TrainingCourse;
+use App\Models\TrainingProviderProfile;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
@@ -113,5 +116,22 @@ class DatabaseSeeder extends Seeder
             'message' => 'دعوة لمقابلة مبدئية مع فريق التوظيف.',
             'status' => 'pending',
         ]);
+
+        $trainingUser = User::factory()->create(['name' => 'أكاديمية مدارات للتدريب', 'email' => 'training@madarat.test', 'password' => 'password', 'role' => 'training_provider']);
+        $trainingProvider = TrainingProviderProfile::create(['user_id' => $trainingUser->id, 'provider_type' => 'company', 'display_name' => 'أكاديمية مدارات للتدريب', 'legal_name' => 'أكاديمية مدارات للتدريب والتطوير', 'description' => 'مقدم تدريب مهني متخصص في المهارات الرقمية المطلوبة في سوق العمل.', 'email' => 'training@madarat.test', 'phone' => '0910000000', 'city' => 'طرابلس', 'specializations' => ['البرمجة', 'تحليل البيانات'], 'commercial_registration_number' => 'TR-2026-100', 'verification_status' => 'verified', 'verified_at' => now()]);
+        $trainerUser = User::factory()->create(['name' => 'مدرب مستقل', 'email' => 'trainer@madarat.test', 'password' => 'password', 'role' => 'training_provider']);
+        $trainer = TrainingProviderProfile::create(['user_id' => $trainerUser->id, 'provider_type' => 'trainer', 'display_name' => 'أحمد المدرب', 'description' => 'مدرب مستقل في التسويق الرقمي.', 'email' => 'trainer@madarat.test', 'phone' => '0920000000', 'city' => 'بنغازي', 'specializations' => ['التسويق الرقمي'], 'verification_status' => 'pending', 'verification_requested_at' => now()]);
+        $courseData = [
+            ['provider' => $trainingProvider, 'title' => 'Laravel و React للتطبيقات الحديثة', 'skills' => ['Laravel', 'React', 'TypeScript'], 'method' => 'hybrid', 'level' => 'intermediate', 'price' => 450, 'status' => 'published'],
+            ['provider' => $trainingProvider, 'title' => 'أساسيات SQL وتحليل البيانات', 'skills' => ['SQL', 'Excel', 'تحليل البيانات'], 'method' => 'online', 'level' => 'beginner', 'price' => 200, 'status' => 'published'],
+            ['provider' => $trainer, 'title' => 'التسويق الرقمي و SEO', 'skills' => ['التسويق الرقمي', 'SEO'], 'method' => 'online', 'level' => 'all_levels', 'price' => 150, 'status' => 'published'],
+            ['provider' => $trainingProvider, 'title' => 'إدارة المنتجات الرقمية', 'skills' => ['إدارة المنتجات'], 'method' => 'in_person', 'level' => 'advanced', 'price' => 600, 'status' => 'draft'],
+            ['provider' => $trainer, 'title' => 'كتابة المحتوى المهني', 'skills' => ['كتابة المحتوى'], 'method' => 'online', 'level' => 'beginner', 'price' => 100, 'status' => 'pending_review'],
+            ['provider' => $trainer, 'title' => 'دورة إعلانية تجريبية', 'skills' => ['الإعلانات'], 'method' => 'online', 'level' => 'beginner', 'price' => 90, 'status' => 'rejected'],
+        ];
+        $courses = collect($courseData)->map(fn ($item) => TrainingCourse::create(['training_provider_id' => $item['provider']->id, 'title' => $item['title'], 'slug' => Str::slug($item['title']).'-'.Str::lower(Str::random(4)), 'short_description' => 'دورة عملية تربط المهارات باحتياجات سوق العمل.', 'description' => 'برنامج تدريبي تطبيقي يقدم معرفة منظمة وتمارين عملية تساعد المشاركين على تطوير مهارات قابلة للاستخدام.', 'learning_outcomes' => ['تطبيق المهارة عملياً', 'بناء مشروع تدريبي'], 'skills_taught' => $item['skills'], 'prerequisites' => $item['level'] === 'advanced' ? ['خبرة أساسية'] : [], 'difficulty_level' => $item['level'], 'delivery_method' => $item['method'], 'is_remote' => $item['method'] !== 'in_person', 'duration_value' => 4, 'duration_unit' => 'weeks', 'price' => $item['price'], 'currency' => 'LYD', 'certificate_available' => true, 'status' => $item['status'], 'published_at' => $item['status'] === 'published' ? now() : null, 'submitted_at' => in_array($item['status'], ['pending_review', 'rejected']) ? now() : null, 'rejection_reason' => $item['status'] === 'rejected' ? 'الوصف يحتاج إلى تفاصيل أوضح عن المخرجات.' : null]));
+        CourseUserFeedback::create(['user_id' => $seekers[0]->id, 'course_id' => $courses[1]->id, 'saved' => true]);
+        CourseUserFeedback::create(['user_id' => $seekers[1]->id, 'course_id' => $courses[2]->id, 'completed' => true]);
+        CourseUserFeedback::create(['user_id' => $seekers[0]->id, 'course_id' => $courses[2]->id, 'dismissed_at' => now()]);
     }
 }

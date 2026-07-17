@@ -1,6 +1,6 @@
 import { ButtonHTMLAttributes, FormEvent, PropsWithChildren, useEffect, useState } from 'react';
 import { Link, router, useForm, usePage } from '@inertiajs/react';
-import { Bot, BriefcaseBusiness, Building2, CheckCircle2, FileText, Gauge, Languages, LoaderCircle, MessageCircle, Send, Sparkles, UserRound, X } from 'lucide-react';
+import { Bot, BookOpen, BriefcaseBusiness, Building2, CheckCircle2, Clock, Eye, FileText, Gauge, Languages, LoaderCircle, MessageCircle, Send, Sparkles, Target, UserRound, X, XCircle } from 'lucide-react';
 import axios from 'axios';
 
 export type Job = {
@@ -398,4 +398,4 @@ export function AssistantWidget() {
     );
 }
 
-export const icons = { BriefcaseBusiness, Building2, CheckCircle2, FileText, UserRound };
+export const icons = { BookOpen, BriefcaseBusiness, Building2, CheckCircle2, Clock, Eye, FileText, Sparkles, Target, UserRound, XCircle };

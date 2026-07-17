@@ -1,9 +1,11 @@
 <?php
 
 use App\Http\Controllers\AdminDashboardController;
+use App\Http\Controllers\AdminTrainingController;
 use App\Http\Controllers\ApplicationController;
 use App\Http\Controllers\AssistantController;
 use App\Http\Controllers\CompanyProfileController;
+use App\Http\Controllers\CourseCatalogueController;
 use App\Http\Controllers\CvAnalysisController;
 use App\Http\Controllers\EmployerDashboardController;
 use App\Http\Controllers\HomeController;
@@ -14,6 +16,8 @@ use App\Http\Controllers\JobSeekerProfileController;
 use App\Http\Controllers\MatchingController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RoleRedirectController;
+use App\Http\Controllers\TrainingCourseController;
+use App\Http\Controllers\TrainingProviderController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -21,6 +25,8 @@ Route::get('/', HomeController::class)->name('home');
 Route::get('/jobs', [JobController::class, 'index'])->name('jobs.index');
 Route::get('/jobs/{job:slug}', [JobController::class, 'show'])->name('jobs.show');
 Route::get('/cv-builder', fn () => Inertia::render('CvBuilder'))->name('cv-builder');
+Route::get('/courses', [CourseCatalogueController::class, 'index'])->name('courses.index');
+Route::get('/courses/{course:slug}', [CourseCatalogueController::class, 'show'])->name('courses.show');
 
 Route::get('/dashboard', RoleRedirectController::class)->middleware('auth')->name('dashboard');
 
@@ -56,6 +62,29 @@ Route::middleware(['auth', 'role:employer'])->group(function () {
     Route::post('/employer/applications/{application}/invite-interview', [ApplicationController::class, 'inviteInterview'])->name('employer.applications.invite');
 });
 
+Route::middleware(['auth', 'role:training_provider'])->prefix('training')->name('training.')->group(function () {
+    Route::get('/dashboard', [TrainingProviderController::class, 'dashboard'])->name('dashboard');
+    Route::get('/profile', [TrainingProviderController::class, 'edit'])->name('profile');
+    Route::post('/profile', [TrainingProviderController::class, 'update'])->name('profile.update');
+    Route::post('/profile/request-verification', [TrainingProviderController::class, 'requestVerification'])->name('profile.verify');
+    Route::get('/courses', [TrainingCourseController::class, 'index'])->name('courses.index');
+    Route::get('/courses/create', [TrainingCourseController::class, 'create'])->name('courses.create');
+    Route::post('/courses', [TrainingCourseController::class, 'store'])->name('courses.store');
+    Route::get('/courses/{course}', [TrainingCourseController::class, 'show'])->name('courses.show');
+    Route::get('/courses/{course}/edit', [TrainingCourseController::class, 'edit'])->name('courses.edit');
+    Route::put('/courses/{course}', [TrainingCourseController::class, 'update'])->name('courses.update');
+    Route::post('/courses/{course}/submit', [TrainingCourseController::class, 'submit'])->name('courses.submit');
+    Route::post('/courses/{course}/close', [TrainingCourseController::class, 'close'])->name('courses.close');
+    Route::post('/courses/{course}/archive', [TrainingCourseController::class, 'archive'])->name('courses.archive');
+    Route::post('/courses/{course}/analyze', [TrainingCourseController::class, 'analyze'])->name('courses.analyze');
+});
+
+Route::middleware(['auth', 'role:job_seeker'])->group(function () {
+    Route::get('/seeker/courses/recommended', [CourseCatalogueController::class, 'recommendations'])->name('seeker.courses.recommended');
+    Route::get('/seeker/courses/saved', [CourseCatalogueController::class, 'saved'])->name('seeker.courses.saved');
+    Route::post('/courses/{course}/feedback', [CourseCatalogueController::class, 'feedback'])->name('courses.feedback');
+});
+
 Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/admin/dashboard', AdminDashboardController::class)->name('admin.dashboard');
     Route::get('/admin/jobs/pending', AdminDashboardController::class)->name('admin.jobs.pending');
@@ -65,6 +94,13 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::post('/admin/jobs/{job}/reject', [JobController::class, 'reject'])->name('admin.jobs.reject');
     Route::post('/admin/companies/{company}/verify', [CompanyProfileController::class, 'approveVerification'])->name('admin.companies.verify');
     Route::post('/admin/companies/{company}/reject-verification', [CompanyProfileController::class, 'rejectVerification'])->name('admin.companies.reject-verification');
+    Route::get('/admin/training', [AdminTrainingController::class, 'index'])->name('admin.training.index');
+    Route::get('/admin/training/providers/{provider}', [AdminTrainingController::class, 'provider'])->name('admin.training.providers.show');
+    Route::post('/admin/training/providers/{provider}/verify', [AdminTrainingController::class, 'verify'])->name('admin.training.providers.verify');
+    Route::post('/admin/training/providers/{provider}/reject', [AdminTrainingController::class, 'rejectProvider'])->name('admin.training.providers.reject');
+    Route::post('/admin/training/courses/{course}/approve', [AdminTrainingController::class, 'approveCourse'])->name('admin.training.courses.approve');
+    Route::post('/admin/training/courses/{course}/reject', [AdminTrainingController::class, 'rejectCourse'])->name('admin.training.courses.reject');
+    Route::post('/admin/training/courses/{course}/transition', [AdminTrainingController::class, 'transition'])->name('admin.training.courses.transition');
 });
 
 require __DIR__.'/auth.php';

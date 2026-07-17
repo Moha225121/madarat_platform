@@ -1,0 +1,2 @@
+import { Link } from '@inertiajs/react'; import { Badge, Card, DashboardLayout } from '@/Components/Madarat';
+export default function Saved({feedback}:any){return <DashboardLayout title="دوراتي المحفوظة والمكتملة"><div className="space-y-3">{feedback.map((f:any)=><Card key={f.id}><Link className="font-black" href={`/courses/${f.course.slug}`}>{f.course.title}</Link><div className="mt-2 flex gap-2">{f.saved&&<Badge tone="cyan">محفوظة</Badge>}{f.completed&&<Badge tone="green">مكتملة</Badge>}</div></Card>)}</div></DashboardLayout>}

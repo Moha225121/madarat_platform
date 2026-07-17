@@ -41,6 +41,21 @@ class User extends Authenticatable
         return $this->hasOne(CompanyProfile::class);
     }
 
+    public function trainingProviderProfile(): HasOne
+    {
+        return $this->hasOne(TrainingProviderProfile::class);
+    }
+
+    public function courseFeedback(): HasMany
+    {
+        return $this->hasMany(CourseUserFeedback::class);
+    }
+
+    public function courseRecommendations(): HasMany
+    {
+        return $this->hasMany(CourseRecommendation::class, 'job_seeker_id');
+    }
+
     public function applications(): HasMany
     {
         return $this->hasMany(Application::class);

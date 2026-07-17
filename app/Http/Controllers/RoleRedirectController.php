@@ -12,6 +12,7 @@ class RoleRedirectController extends Controller
         return match ($request->user()->role) {
             'admin' => redirect()->route('admin.dashboard'),
             'employer' => redirect()->route('employer.dashboard'),
+            'training_provider' => redirect()->route('training.dashboard'),
             default => redirect()->route('seeker.dashboard'),
         };
     }

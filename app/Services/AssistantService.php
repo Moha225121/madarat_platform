@@ -26,6 +26,8 @@ class AssistantService
             'jobSeekerProfile',
             'applications.interviewInvitation',
             'applications.job.companyProfile',
+            'courseRecommendations.course.provider',
+            'courseFeedback.course.provider',
         ]);
         $profile = $user->jobSeekerProfile;
 
@@ -88,6 +90,24 @@ class AssistantService
 
         if ($applications !== []) {
             $context['applications'] = $applications;
+        }
+
+        if ($user->role === 'job_seeker') {
+            $context['course_recommendations'] = $user->courseRecommendations->whereNull('dismissed_at')->take(10)->map(fn ($recommendation) => $this->filledValues([
+                'course' => $recommendation->course?->title,
+                'provider' => $recommendation->course?->provider?->display_name,
+                'score' => $recommendation->score,
+                'missing_skills_covered' => $recommendation->missing_skills_covered,
+                'reason' => $recommendation->reason,
+                'evidence' => $recommendation->evidence,
+            ]))->values()->all();
+            $context['course_history'] = $user->courseFeedback->map(fn ($feedback) => $this->filledValues([
+                'course' => $feedback->course?->title,
+                'saved' => $feedback->saved,
+                'completed' => $feedback->completed,
+                'already_knows' => $feedback->already_knows,
+                'dismissed' => (bool) $feedback->dismissed_at,
+            ]))->values()->all();
         }
 
         return $this->filledValues($context);

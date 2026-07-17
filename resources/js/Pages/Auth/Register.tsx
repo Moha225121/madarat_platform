@@ -52,6 +52,7 @@ export default function Register() {
                     <select id="role" value={data.role} onChange={(e) => setData('role', e.target.value)} className="mt-1 block w-full rounded-lg border-slate-200 shadow-sm focus:border-madarat-cyan focus:ring-madarat-cyan">
                         <option value="job_seeker">باحث عن عمل</option>
                         <option value="employer">صاحب عمل</option>
+                        <option value="training_provider">شركة تدريب / مدرب</option>
                     </select>
                     <InputError message={errors.role} className="mt-2" />
                 </div>

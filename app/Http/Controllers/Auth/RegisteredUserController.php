@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\CompanyProfile;
 use App\Models\JobSeekerProfile;
+use App\Models\TrainingProviderProfile;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
@@ -36,7 +37,7 @@ class RegisteredUserController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
-            'role' => 'required|in:job_seeker,employer',
+            'role' => 'required|in:job_seeker,employer,training_provider',
             'phone' => 'nullable|string|max:30',
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
@@ -51,11 +52,20 @@ class RegisteredUserController extends Controller
 
         if ($user->role === 'job_seeker') {
             JobSeekerProfile::create(['user_id' => $user->id]);
-        } else {
+        } elseif ($user->role === 'employer') {
             CompanyProfile::create([
                 'user_id' => $user->id,
                 'company_name' => $user->name,
                 'verification_status' => 'unverified',
+            ]);
+        } else {
+            TrainingProviderProfile::create([
+                'user_id' => $user->id,
+                'provider_type' => 'company',
+                'display_name' => $user->name,
+                'email' => $user->email,
+                'phone' => $user->phone,
+                'verification_status' => 'incomplete',
             ]);
         }
 
