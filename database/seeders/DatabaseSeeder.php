@@ -18,12 +18,7 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        User::factory()->create([
-            'name' => 'مدير منصة مدارات',
-            'email' => 'admin@madarat.test',
-            'password' => 'password',
-            'role' => 'admin',
-        ]);
+        $this->call(AdminSeeder::class);
 
         $employers = collect([
             ['name' => 'شركة أفق الرقمية', 'email' => 'employer@madarat.test', 'company' => 'أفق الرقمية', 'industry' => 'تقنية المعلومات', 'city' => 'طرابلس'],
