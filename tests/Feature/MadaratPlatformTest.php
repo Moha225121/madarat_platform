@@ -8,6 +8,7 @@ use App\Models\JobSeekerProfile;
 use App\Models\User;
 use App\Services\MatchingService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
 class MadaratPlatformTest extends TestCase
@@ -137,5 +138,37 @@ class MadaratPlatformTest extends TestCase
 
         $this->actingAs($admin)->get('/admin/dashboard')->assertOk();
         $this->actingAs($seeker)->get('/admin/dashboard')->assertForbidden();
+    }
+
+    public function test_admin_must_review_job_details_before_approving_or_rejecting(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $employer = User::factory()->create(['role' => 'employer']);
+        $company = CompanyProfile::create([
+            'user_id' => $employer->id,
+            'company_name' => 'شركة الاختبار',
+        ]);
+        $job = Job::create([
+            'company_profile_id' => $company->id,
+            'title' => 'وظيفة للمراجعة',
+            'slug' => 'job-for-review',
+            'description' => 'وصف كامل للوظيفة المطلوب مراجعته.',
+            'status' => 'pending_review',
+        ]);
+
+        $this->actingAs($admin)
+            ->post("/admin/jobs/{$job->id}/approve")
+            ->assertForbidden();
+        $this->assertSame('pending_review', $job->fresh()->status);
+
+        $this->get("/admin/jobs/{$job->id}/review")
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Admin/JobReview')
+                ->where('job.id', $job->id));
+
+        $this->post("/admin/jobs/{$job->id}/approve")
+            ->assertRedirect('/admin/jobs/pending');
+        $this->assertSame('published', $job->fresh()->status);
     }
 }

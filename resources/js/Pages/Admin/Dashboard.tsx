@@ -1,5 +1,5 @@
-import { Link, router } from '@inertiajs/react';
-import { Badge, Button, Card, CompanyVerificationBadge, DashboardLayout, StatCard, icons } from '@/Components/Madarat';
+import { Link } from '@inertiajs/react';
+import { Badge, Card, CompanyVerificationBadge, DashboardLayout, StatCard, icons } from '@/Components/Madarat';
 
 export default function AdminDashboard({ stats, pendingJobs, pendingCompanies = [], growth }: any) {
     return (
@@ -25,10 +25,9 @@ export default function AdminDashboard({ stats, pendingJobs, pendingCompanies = 
                                             <CompanyVerificationBadge status={job.company_profile.verification_status} />
                                         </p>
                                     </div>
-                                    <div className="flex gap-2">
-                                        <Button onClick={() => router.post(`/admin/jobs/${job.id}/approve`)}>موافقة</Button>
-                                        <Button onClick={() => router.post(`/admin/jobs/${job.id}/reject`)} className="bg-slate-500">رفض</Button>
-                                    </div>
+                                    <Link href={`/admin/jobs/${job.id}/review`} className="rounded-lg bg-madarat-blue px-4 py-2 text-sm font-bold text-white shadow-sm shadow-madarat-blue/20 hover:bg-madarat-navy">
+                                        عرض التفاصيل واتخاذ القرار
+                                    </Link>
                                 </div>
                             </div>
                         )) : <p className="text-sm text-slate-500">لا توجد وظائف بانتظار المراجعة.</p>}

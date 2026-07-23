@@ -109,18 +109,40 @@ class JobController extends Controller
         return back()->with('success', 'تم تحديث الوظيفة.');
     }
 
-    public function approve(Job $job): RedirectResponse
+    public function review(Job $job, Request $request): Response
     {
-        $job->update(['status' => 'published']);
+        abort_unless($job->status === 'pending_review', 404);
 
-        return back()->with('success', 'تمت الموافقة على الوظيفة.');
+        $job->load('companyProfile.user');
+        $request->session()->put("admin.reviewed_jobs.{$job->id}", true);
+
+        return Inertia::render('Admin/JobReview', [
+            'job' => $job,
+        ]);
     }
 
-    public function reject(Job $job): RedirectResponse
+    public function approve(Job $job, Request $request): RedirectResponse
     {
-        $job->update(['status' => 'closed']);
+        $this->ensureJobWasReviewed($job, $request);
+        $job->update(['status' => 'published']);
+        $request->session()->forget("admin.reviewed_jobs.{$job->id}");
 
-        return back()->with('success', 'تم رفض الوظيفة.');
+        return redirect()->route('admin.jobs.pending')->with('success', 'تمت الموافقة على الوظيفة ونشرها.');
+    }
+
+    public function reject(Job $job, Request $request): RedirectResponse
+    {
+        $this->ensureJobWasReviewed($job, $request);
+        $job->update(['status' => 'closed']);
+        $request->session()->forget("admin.reviewed_jobs.{$job->id}");
+
+        return redirect()->route('admin.jobs.pending')->with('success', 'تم رفض الوظيفة وإغلاقها.');
+    }
+
+    private function ensureJobWasReviewed(Job $job, Request $request): void
+    {
+        abort_unless($job->status === 'pending_review', 422);
+        abort_unless((bool) $request->session()->get("admin.reviewed_jobs.{$job->id}", false), 403, 'يجب عرض تفاصيل الوظيفة قبل اتخاذ القرار.');
     }
 
     private function normalizedJobData(array $data): array

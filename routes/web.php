@@ -88,6 +88,7 @@ Route::middleware(['auth', 'role:job_seeker'])->group(function () {
 Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/admin/dashboard', AdminDashboardController::class)->name('admin.dashboard');
     Route::get('/admin/jobs/pending', AdminDashboardController::class)->name('admin.jobs.pending');
+    Route::get('/admin/jobs/{job}/review', [JobController::class, 'review'])->name('admin.jobs.review');
     Route::get('/admin/companies/verification', AdminDashboardController::class)->name('admin.companies.verification');
     Route::get('/admin/companies/{company}/verification', [CompanyProfileController::class, 'reviewVerification'])->name('admin.companies.verification.show');
     Route::post('/admin/jobs/{job}/approve', [JobController::class, 'approve'])->name('admin.jobs.approve');
