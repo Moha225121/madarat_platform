@@ -110,8 +110,42 @@ export function StatCard({ label, value, icon: Icon = Gauge }: { label: string; 
 export function FlashMessage() {
     const { props } = usePage<any>();
     const message = props.flash?.success || props.flash?.error;
-    if (!message) return null;
-    return <div className="mb-4 rounded-lg border border-cyan-100 bg-madarat-sky p-3 text-sm font-bold text-madarat-blue">{message}</div>;
+    const [visible, setVisible] = useState(Boolean(message));
+
+    useEffect(() => {
+        setVisible(Boolean(message));
+
+        if (!message) return;
+
+        const timeout = window.setTimeout(() => setVisible(false), 5000);
+
+        return () => window.clearTimeout(timeout);
+    }, [message]);
+
+    if (!message || !visible) return null;
+
+    const isError = Boolean(props.flash?.error);
+
+    return (
+        <div className="fixed inset-0 z-[100] grid place-items-center bg-slate-950/25 p-4 backdrop-blur-[2px]" role="alert" aria-live="assertive">
+            <div className={`w-full max-w-md rounded-xl border bg-white p-6 text-center shadow-2xl ${isError ? 'border-red-200' : 'border-cyan-100'}`}>
+                <span className={`mx-auto grid h-14 w-14 place-items-center rounded-full ${isError ? 'bg-red-50 text-red-600' : 'bg-madarat-sky text-madarat-blue'}`}>
+                    {isError ? <XCircle className="h-7 w-7" /> : <CheckCircle2 className="h-7 w-7" />}
+                </span>
+                <h2 className={`mt-4 text-lg font-black ${isError ? 'text-red-700' : 'text-madarat-navy'}`}>
+                    {isError ? 'تعذر إكمال العملية' : 'تمت العملية بنجاح'}
+                </h2>
+                <p className="mt-2 leading-7 text-slate-600">{message}</p>
+                <button
+                    type="button"
+                    onClick={() => setVisible(false)}
+                    className={`mt-5 rounded-lg px-6 py-2 text-sm font-black text-white ${isError ? 'bg-red-600 hover:bg-red-700' : 'bg-madarat-blue hover:bg-madarat-navy'}`}
+                >
+                    إغلاق
+                </button>
+            </div>
+        </div>
+    );
 }
 
 export function AppLayout({ children }: PropsWithChildren) {
@@ -134,7 +168,7 @@ export function AppLayout({ children }: PropsWithChildren) {
                             </>
                         )}
                         {user && <button onClick={() => router.post('/logout')} className="rounded-lg px-3 py-2 text-slate-500 hover:bg-slate-100">خروج</button>}
-                        <span className="hidden items-center gap-1 rounded-lg bg-slate-100 px-3 py-2 text-slate-500 sm:flex"><Languages className="h-4 w-4" /> AR / EN</span>
+                        <span className="hidden items-center gap-1 rounded-lg bg-slate-100 px-3 py-2 text-slate-500 sm:flex"><Languages className="h-4 w-4" /> العربية</span>
                     </nav>
                 </div>
             </header>
@@ -151,7 +185,7 @@ export function DashboardLayout({ title, children }: PropsWithChildren<{ title: 
         ? [['/employer/dashboard', 'الرئيسية'], ['/employer/company', 'الشركة'], ['/employer/jobs/create', 'نشر وظيفة']]
         : role === 'admin'
             ? [['/admin/dashboard', 'الرئيسية'], ['/admin/jobs/pending', 'مراجعة الوظائف'], ['/admin/companies/verification', 'توثيق الشركات']]
-            : [['/seeker/dashboard', 'الرئيسية'], ['/seeker/profile', 'ملفي'], ['/seeker/cv-analysis', 'تحليل السيرة'], ['/cv-builder', 'منشئ السيرة'], ['/seeker/applications', 'طلباتي']];
+            : [['/seeker/dashboard', 'الرئيسية'], ['/seeker/profile', 'ملفي'], ['/seeker/cv-analysis', 'تحليل السيرة'], ['/cv-builder', 'منشئ السيرة'], ['/seeker/applications', 'طلباتي'], ['/courses', 'الدورات المتاحة'], ['/seeker/courses/recommended', 'دورات مرشحة لي']];
     return (
         <AppLayout>
             <div className="mb-6 flex flex-wrap items-center justify-between gap-3">

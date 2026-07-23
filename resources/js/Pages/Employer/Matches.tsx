@@ -59,7 +59,7 @@ function ApplicationCard({ application }: { application: any }) {
                     <div className="flex flex-wrap items-center gap-2">
                         <h3 className="font-black text-madarat-navy">{application.user.name}</h3>
                         <Badge tone={application.status === 'interview_invited' ? 'green' : 'cyan'}>
-                            {statusLabels[application.status] || application.status}
+                            {statusLabels[application.status] || 'حالة غير محددة'}
                         </Badge>
                     </div>
                     <p className="mt-2 text-sm leading-6 text-slate-500">{application.user.job_seeker_profile?.experience_summary || 'لا يوجد ملخص خبرة بعد.'}</p>

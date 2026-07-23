@@ -20,7 +20,7 @@ export default function Applications({ applications }: any) {
                                     <p className="text-sm text-slate-500">{application.job.company_profile.company_name}</p>
                                 </div>
                                 <Badge tone={application.status === 'interview_invited' ? 'green' : 'cyan'}>
-                                    {statusLabels[application.status] || application.status}
+                                    {statusLabels[application.status] || 'حالة غير محددة'}
                                 </Badge>
                             </div>
                             <p className="mt-3 text-sm text-slate-500">نسبة المطابقة: {application.match_score}% - {application.match_summary}</p>

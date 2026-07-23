@@ -72,6 +72,6 @@ class TrainingProviderController extends Controller
 
     private function list(mixed $value): array
     {
-        return is_array($value) ? array_values(array_filter($value)) : preg_split('/[\r\n,]+/', (string) $value, -1, PREG_SPLIT_NO_EMPTY);
+        return is_array($value) ? array_values(array_filter($value)) : preg_split('/[\r\n,،]+/', (string) $value, -1, PREG_SPLIT_NO_EMPTY);
     }
 }

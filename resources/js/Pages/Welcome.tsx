@@ -50,7 +50,7 @@ export default function Welcome({ featuredJobs = [] }: { featuredJobs: Job[] }) 
                             <div className="absolute right-4 top-10 h-28 w-28 rounded-full border-[16px] border-white/12" />
                             <div className="absolute left-12 top-24 h-20 w-20 rounded-full border-[12px] border-white/12" />
                         </div>
-                        <p className="text-left text-sm font-black">Notebook</p>
+                        <p className="text-left text-sm font-black">دفتر مدارات</p>
                         <div className="relative mt-16 rounded-lg bg-white p-4 text-madarat-navy shadow-lg">
                             <MadaratLogo />
                             <div className="mt-4 h-1.5 rounded-full bg-madarat-cyan" />

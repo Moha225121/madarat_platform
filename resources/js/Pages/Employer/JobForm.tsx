@@ -108,7 +108,7 @@ export default function JobForm({ job, companyVerified = false }: any) {
                         <SectionTitle icon={BriefcaseBusiness} title="المعلومات الأساسية" />
                         <div className="grid gap-4 md:grid-cols-2">
                             <Field label="المسمى الوظيفي" error={errors.title}>
-                                <input value={data.title} onChange={(e) => setData('title', e.target.value)} placeholder="مثال: مطور تطبيقات Flutter" className={fieldClass} />
+                                <input value={data.title} onChange={(e) => setData('title', e.target.value)} placeholder="مثال: مطور تطبيقات الهاتف" className={fieldClass} />
                             </Field>
                             <Field label="الموقع" error={errors.location}>
                                 <input value={data.location} onChange={(e) => setData('location', e.target.value)} placeholder="طرابلس، عن بعد، أو هجين" className={fieldClass} />
@@ -145,7 +145,7 @@ export default function JobForm({ job, companyVerified = false }: any) {
                         <SectionTitle icon={ListChecks} title="المهارات والمسؤوليات" />
                         <div className="grid gap-4 md:grid-cols-2">
                             <Field label="المهارات المطلوبة" error={errors.required_skills} hint="اكتب كل مهارة في سطر، أو افصل بينها بفواصل.">
-                                <textarea value={data.required_skills} onChange={(e) => setData('required_skills', e.target.value)} placeholder={"Flutter\nDart\nFirebase\nREST APIs"} className={fieldClass} rows={7} />
+                                <textarea value={data.required_skills} onChange={(e) => setData('required_skills', e.target.value)} placeholder={"تطوير تطبيقات الهاتف\nتصميم الواجهات\nقواعد البيانات\nربط الخدمات"} className={fieldClass} rows={7} />
                             </Field>
                             <Field label="المسؤوليات" error={errors.responsibilities} hint="اكتب كل مسؤولية في سطر مستقل لتظهر بشكل مرتب في صفحة الوظيفة.">
                                 <textarea value={data.responsibilities} onChange={(e) => setData('responsibilities', e.target.value)} placeholder={"تطوير تطبيقات عالية الجودة\nاختبار وتحسين الأداء\nالتعاون مع فريق التصميم"} className={fieldClass} rows={7} />

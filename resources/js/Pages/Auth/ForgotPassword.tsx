@@ -18,12 +18,10 @@ export default function ForgotPassword({ status }: { status?: string }) {
 
     return (
         <GuestLayout>
-            <Head title="Forgot Password" />
+            <Head title="نسيت كلمة المرور" />
 
             <div className="mb-4 text-sm text-gray-600">
-                Forgot your password? No problem. Just let us know your email
-                address and we will email you a password reset link that will
-                allow you to choose a new one.
+                أدخل بريدك الإلكتروني وسنرسل إليك رابطًا لإعادة تعيين كلمة المرور واختيار كلمة مرور جديدة.
             </div>
 
             {status && (
@@ -33,6 +31,7 @@ export default function ForgotPassword({ status }: { status?: string }) {
             )}
 
             <form onSubmit={submit}>
+                <span className="mb-1 block text-sm font-bold text-madarat-navy">البريد الإلكتروني</span>
                 <TextInput
                     id="email"
                     type="email"
@@ -47,7 +46,7 @@ export default function ForgotPassword({ status }: { status?: string }) {
 
                 <div className="mt-4 flex items-center justify-end">
                     <PrimaryButton className="ms-4" disabled={processing}>
-                        Email Password Reset Link
+                        إرسال رابط إعادة التعيين
                     </PrimaryButton>
                 </div>
             </form>

@@ -64,6 +64,20 @@ class TrainingPlatformTest extends TestCase
         $this->actingAs($provider)->put("/training/courses/{$course->id}", $this->courseData())->assertForbidden();
     }
 
+    public function test_provider_can_save_a_course_and_send_it_directly_for_review(): void
+    {
+        $provider = $this->provider();
+
+        $this->actingAs($provider)
+            ->post('/training/courses', $this->courseData(['submission_action' => 'review']))
+            ->assertRedirect('/training/courses');
+
+        $this->assertDatabaseHas('training_courses', [
+            'training_provider_id' => $provider->trainingProviderProfile->id,
+            'status' => 'pending_review',
+        ]);
+    }
+
     public function test_admin_course_rejection_requires_reason_and_public_catalogue_only_shows_published(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);

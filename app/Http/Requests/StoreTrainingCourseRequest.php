@@ -23,6 +23,7 @@ class StoreTrainingCourseRequest extends FormRequest
             'price' => ['nullable', 'numeric', 'min:0'], 'currency' => ['nullable', 'string', 'size:3'], 'capacity' => ['nullable', 'integer', 'min:1'],
             'contact_email' => ['nullable', 'email'], 'contact_phone' => ['nullable', 'string', 'max:30'], 'registration_url' => ['nullable', 'url', 'max:2048'],
             'cover_image' => ['nullable', 'image', 'mimes:png,jpg,jpeg,webp', 'max:4096'], 'certificate_available' => ['boolean'],
+            'submission_action' => ['nullable', 'in:draft,review'],
         ];
     }
 }

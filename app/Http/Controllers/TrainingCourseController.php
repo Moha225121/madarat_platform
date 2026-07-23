@@ -30,10 +30,14 @@ class TrainingCourseController extends Controller
         $data = $this->data($request);
         $data['training_provider_id'] = $request->user()->trainingProviderProfile->id;
         $data['slug'] = $this->slug($data['title']);
-        $data['status'] = 'draft';
+        $submitForReview = $request->input('submission_action') === 'review';
+        $data['status'] = $submitForReview ? 'pending_review' : 'draft';
+        $data['submitted_at'] = $submitForReview ? now() : null;
         $course = TrainingCourse::create($data);
 
-        return redirect()->route('training.courses.edit', $course)->with('success', 'تم إنشاء مسودة الدورة.');
+        return $submitForReview
+            ? redirect()->route('training.courses.index')->with('success', 'تم حفظ الدورة وإرسالها إلى الإدارة للمراجعة.')
+            : redirect()->route('training.courses.edit', $course)->with('success', 'تم حفظ الدورة كمسودة.');
     }
 
     public function show(TrainingCourse $course, Request $request): Response
@@ -53,9 +57,18 @@ class TrainingCourseController extends Controller
     public function update(StoreTrainingCourseRequest $request, TrainingCourse $course): RedirectResponse
     {
         $this->authorize('update', $course);
-        $course->update($this->data($request));
+        $submitForReview = $request->input('submission_action') === 'review';
+        $data = $this->data($request);
+        if ($submitForReview) {
+            $data['status'] = 'pending_review';
+            $data['submitted_at'] = now();
+            $data['rejection_reason'] = null;
+        }
+        $course->update($data);
 
-        return back()->with('success', 'تم تحديث الدورة. التحليل السابق سيظهر كقديم إن تغير المحتوى.');
+        return $submitForReview
+            ? redirect()->route('training.courses.index')->with('success', 'تم حفظ التعديلات وإرسال الدورة إلى الإدارة للمراجعة.')
+            : back()->with('success', 'تم حفظ تعديلات الدورة.');
     }
 
     public function submit(TrainingCourse $course): RedirectResponse
@@ -102,10 +115,11 @@ class TrainingCourseController extends Controller
     {
         $data = $request->validated();
         foreach (['learning_outcomes', 'skills_taught', 'prerequisites'] as $field) {
-            $data[$field] = is_array($data[$field] ?? null) ? array_values(array_filter($data[$field])) : preg_split('/[\r\n,]+/', (string) ($data[$field] ?? ''), -1, PREG_SPLIT_NO_EMPTY);
+            $data[$field] = is_array($data[$field] ?? null) ? array_values(array_filter($data[$field])) : preg_split('/[\r\n,،]+/', (string) ($data[$field] ?? ''), -1, PREG_SPLIT_NO_EMPTY);
         } if ($request->hasFile('cover_image')) {
             $data['cover_image_path'] = $request->file('cover_image')->store('training-courses', 'public');
         } unset($data['cover_image']);
+        unset($data['submission_action']);
 
         return $data;
     }
