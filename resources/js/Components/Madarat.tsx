@@ -130,7 +130,7 @@ export function AppLayout({ children }: PropsWithChildren) {
                         ) : (
                             <>
                                 <Link href="/login" className="rounded-lg px-3 py-2 hover:bg-madarat-sky">دخول</Link>
-                                <Link href="/register" className="rounded-lg bg-madarat-blue px-4 py-2 text-white shadow-sm shadow-madarat-blue/20 hover:bg-madarat-navy">إنشاء حساب</Link>
+                                <Link href="/register/job-seeker" className="rounded-lg bg-madarat-blue px-4 py-2 text-white shadow-sm shadow-madarat-blue/20 hover:bg-madarat-navy">إنشاء حساب</Link>
                             </>
                         )}
                         {user && <button onClick={() => router.post('/logout')} className="rounded-lg px-3 py-2 text-slate-500 hover:bg-slate-100">خروج</button>}

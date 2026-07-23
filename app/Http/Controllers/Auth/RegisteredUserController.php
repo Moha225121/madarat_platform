@@ -23,9 +23,11 @@ class RegisteredUserController extends Controller
     /**
      * Display the registration view.
      */
-    public function create(): Response
+    public function create(string $accountType = 'job-seeker'): Response
     {
-        return Inertia::render('Auth/Register');
+        return Inertia::render('Auth/Register', [
+            'accountType' => $accountType,
+        ]);
     }
 
     /**
@@ -38,16 +40,28 @@ class RegisteredUserController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
-            'role' => 'required|in:job_seeker,employer,training_provider',
+            'account_type' => 'nullable|in:job-seeker,employer,trainer,training-company',
+            'role' => 'nullable|in:job_seeker,employer,training_provider',
             'phone' => 'nullable|string|max:30',
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
-        $user = DB::transaction(function () use ($request): User {
+        $accountType = $request->string('account_type')->toString() ?: match ($request->string('role')->toString()) {
+            'employer' => 'employer',
+            'training_provider' => 'training-company',
+            default => 'job-seeker',
+        };
+        $role = match ($accountType) {
+            'employer' => 'employer',
+            'trainer', 'training-company' => 'training_provider',
+            default => 'job_seeker',
+        };
+
+        $user = DB::transaction(function () use ($request, $accountType, $role): User {
             $user = User::create([
                 'name' => $request->name,
                 'email' => $request->email,
-                'role' => $request->role,
+                'role' => $role,
                 'phone' => $request->phone,
                 'password' => Hash::make($request->password),
             ]);
@@ -63,7 +77,7 @@ class RegisteredUserController extends Controller
             } else {
                 TrainingProviderProfile::create([
                     'user_id' => $user->id,
-                    'provider_type' => 'company',
+                    'provider_type' => $accountType === 'trainer' ? 'trainer' : 'company',
                     'display_name' => $user->name,
                     'email' => $user->email,
                     'phone' => $user->phone,

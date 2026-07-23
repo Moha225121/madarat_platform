@@ -6,12 +6,38 @@ import GuestLayout from '@/Layouts/GuestLayout';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { FormEventHandler } from 'react';
 
-export default function Register() {
+type AccountType = 'job-seeker' | 'employer' | 'trainer' | 'training-company';
+
+const accountContent: Record<AccountType, { title: string; description: string; nameLabel: string }> = {
+    'job-seeker': {
+        title: 'إنشاء حساب باحث عن عمل',
+        description: 'أنشئ ملفك المهني وابحث عن الفرص المناسبة لمهاراتك.',
+        nameLabel: 'الاسم',
+    },
+    employer: {
+        title: 'إنشاء حساب صاحب عمل',
+        description: 'عرّف بشركتك وانشر الوظائف للوصول إلى الكفاءات المناسبة.',
+        nameLabel: 'اسم المسؤول أو الشركة',
+    },
+    trainer: {
+        title: 'إنشاء حساب مدرب مستقل',
+        description: 'اعرض خبرتك وأنشئ دوراتك لتصل إلى المتعلمين المناسبين.',
+        nameLabel: 'اسم المدرب',
+    },
+    'training-company': {
+        title: 'إنشاء حساب شركة تدريب',
+        description: 'قدّم برامج مؤسستك وأدِر دوراتك من مكان واحد.',
+        nameLabel: 'اسم شركة التدريب',
+    },
+};
+
+export default function Register({ accountType = 'job-seeker' }: { accountType?: AccountType }) {
+    const content = accountContent[accountType];
     const { data, setData, post, processing, errors, reset } = useForm<any>({
         name: '',
         email: '',
         phone: '',
-        role: 'job_seeker',
+        account_type: accountType,
         password: '',
         password_confirmation: '',
     });
@@ -26,11 +52,16 @@ export default function Register() {
 
     return (
         <GuestLayout>
-            <Head title="إنشاء حساب" />
+            <Head title={content.title} />
 
             <form onSubmit={submit}>
+                <div className="mb-5 rounded-lg bg-madarat-sky p-4 text-center ring-1 ring-cyan-100">
+                    <h1 className="text-xl font-black text-madarat-navy">{content.title}</h1>
+                    <p className="mt-2 text-sm font-bold leading-6 text-slate-600">{content.description}</p>
+                </div>
+
                 <div>
-                    <InputLabel htmlFor="name" value="الاسم" />
+                    <InputLabel htmlFor="name" value={content.nameLabel} />
                     <TextInput id="name" name="name" value={data.name} className="mt-1 block w-full" autoComplete="name" isFocused={true} onChange={(e) => setData('name', e.target.value)} required />
                     <InputError message={errors.name} className="mt-2" />
                 </div>
@@ -45,16 +76,6 @@ export default function Register() {
                     <InputLabel htmlFor="phone" value="رقم الهاتف" />
                     <TextInput id="phone" name="phone" value={data.phone} className="mt-1 block w-full" onChange={(e) => setData('phone', e.target.value)} />
                     <InputError message={errors.phone} className="mt-2" />
-                </div>
-
-                <div className="mt-4">
-                    <InputLabel htmlFor="role" value="نوع الحساب" />
-                    <select id="role" value={data.role} onChange={(e) => setData('role', e.target.value)} className="mt-1 block w-full rounded-lg border-slate-200 shadow-sm focus:border-madarat-cyan focus:ring-madarat-cyan">
-                        <option value="job_seeker">باحث عن عمل</option>
-                        <option value="employer">صاحب عمل</option>
-                        <option value="training_provider">شركة تدريب / مدرب</option>
-                    </select>
-                    <InputError message={errors.role} className="mt-2" />
                 </div>
 
                 <div className="mt-4">

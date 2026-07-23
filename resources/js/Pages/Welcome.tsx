@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { ArrowUpRight, BrainCircuit, FileSearch, FileText, LayoutTemplate, MessageCircle, Send, Sparkles, WandSparkles } from 'lucide-react';
+import { ArrowUpRight, BrainCircuit, Building2, FileSearch, FileText, GraduationCap, LayoutTemplate, MessageCircle, Send, Sparkles, WandSparkles } from 'lucide-react';
 import { AppLayout, AssistantRobot, Card, Job, JobCard, MadaratLogo, StatCard, icons } from '@/Components/Madarat';
 
 export default function Welcome({ featuredJobs = [] }: { featuredJobs: Job[] }) {
@@ -19,7 +19,6 @@ export default function Welcome({ featuredJobs = [] }: { featuredJobs: Job[] }) 
         <AppLayout>
             <section className="relative overflow-hidden rounded-lg border border-cyan-100 bg-white px-5 py-8 shadow-sm shadow-madarat-blue/5 md:px-8 lg:grid lg:grid-cols-[1.08fr_.92fr] lg:items-center lg:gap-8">
                 <div className="pointer-events-none absolute -left-24 top-10 h-80 w-80 rounded-full border-[42px] border-madarat-cyan/10" />
-                <div className="pointer-events-none absolute bottom-8 right-1/3 h-40 w-40 rounded-full border-[22px] border-madarat-blue/10" />
 
                 <div className="relative z-10">
                     <MadaratLogo />
@@ -30,12 +29,16 @@ export default function Welcome({ featuredJobs = [] }: { featuredJobs: Job[] }) 
                         نربط الشركات بالكفاءات المناسبة عبر تحليل السير الذاتية والمطابقة الذكية وتجربة عربية واضحة من أول خطوة.
                     </p>
                     <div className="mt-8 flex flex-wrap gap-3">
-                        <Link href="/jobs" className="inline-flex items-center gap-2 rounded-lg bg-madarat-blue px-5 py-3 font-bold text-white shadow-sm shadow-madarat-blue/20 transition hover:bg-madarat-navy">
-                            ابحث عن وظيفة
+                        <Link href="/register/job-seeker" className="inline-flex items-center gap-2 rounded-lg bg-madarat-blue px-5 py-3 font-bold text-white shadow-sm shadow-madarat-blue/20 transition hover:bg-madarat-navy">
+                            سجّل كباحث عن عمل
                             <ArrowUpRight className="h-4 w-4" />
                         </Link>
-                        <Link href="/register" className="rounded-lg bg-white px-5 py-3 font-bold text-madarat-blue shadow-sm ring-1 ring-cyan-100 hover:bg-madarat-sky">
-                            وظف كفاءات
+                        <Link href="/register/employer" className="rounded-lg bg-white px-5 py-3 font-bold text-madarat-blue shadow-sm ring-1 ring-cyan-100 hover:bg-madarat-sky">
+                            سجّل كصاحب عمل
+                        </Link>
+                        <Link href="/register/trainer" className="inline-flex items-center gap-2 rounded-lg bg-white px-5 py-3 font-bold text-madarat-blue shadow-sm ring-1 ring-cyan-100 transition hover:bg-madarat-sky">
+                            <GraduationCap className="h-4 w-4 text-madarat-cyan" />
+                            سجّل كمدرب
                         </Link>
                     </div>
                 </div>
@@ -88,6 +91,62 @@ export default function Welcome({ featuredJobs = [] }: { featuredJobs: Job[] }) 
                         <h3 className="relative mt-3 font-black text-madarat-navy">{feature}</h3>
                     </Card>
                 ))}
+            </section>
+
+            <section className="mt-6 overflow-hidden rounded-lg border border-cyan-100 bg-madarat-navy text-white shadow-sm shadow-madarat-blue/10">
+                <div className="grid lg:grid-cols-[.82fr_1.18fr]">
+                    <div className="relative overflow-hidden p-6 md:p-8">
+                        <div className="pointer-events-none absolute -left-16 -top-16 h-52 w-52 rounded-full border-[28px] border-madarat-cyan/15" />
+                        <div className="relative">
+                            <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-black text-cyan-100 ring-1 ring-white/15">
+                                <GraduationCap className="h-4 w-4" />
+                                انضم إلى مقدمي التدريب
+                            </span>
+                            <h2 className="mt-5 text-3xl font-black leading-tight">حوّل خبرتك إلى فرصة تعلم مؤثرة</h2>
+                            <p className="mt-4 max-w-xl leading-8 text-cyan-50/80">
+                                أنشئ ملفك كمدرب مستقل أو شركة تدريب، وانشر دوراتك لتصل إلى الباحثين عن المهارات المطلوبة في سوق العمل.
+                            </p>
+                            <div className="mt-6 flex flex-wrap gap-3">
+                                <Link href="/register/trainer" className="inline-flex items-center gap-2 rounded-lg bg-madarat-cyan px-5 py-3 text-sm font-bold text-madarat-navy transition hover:bg-white">
+                                    سجّل كمقدم تدريب
+                                    <ArrowUpRight className="h-4 w-4" />
+                                </Link>
+                                <Link href="/courses" className="rounded-lg bg-white/10 px-5 py-3 text-sm font-bold text-white ring-1 ring-white/20 transition hover:bg-white/15">
+                                    استعرض الدورات
+                                </Link>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="grid gap-4 bg-white p-5 text-slate-700 md:grid-cols-2 md:p-8">
+                        <div className="rounded-lg border border-cyan-100 bg-madarat-sky/60 p-5">
+                            <span className="grid h-12 w-12 place-items-center rounded-full bg-white text-madarat-blue shadow-sm ring-1 ring-cyan-100">
+                                <GraduationCap className="h-6 w-6" />
+                            </span>
+                            <h3 className="mt-4 text-xl font-black text-madarat-navy">مدرب مستقل</h3>
+                            <p className="mt-2 text-sm font-bold leading-7 text-slate-600">
+                                اعرض تخصصك وخبرتك، أنشئ دوراتك، وابدأ في بناء حضور مهني يصل إلى المتعلمين المناسبين.
+                            </p>
+                            <Link href="/register/trainer" className="mt-4 inline-flex items-center gap-2 text-sm font-black text-madarat-blue hover:text-madarat-cyan">
+                                إنشاء حساب مدرب
+                                <ArrowUpRight className="h-4 w-4" />
+                            </Link>
+                        </div>
+                        <div className="rounded-lg border border-cyan-100 bg-madarat-sky/60 p-5">
+                            <span className="grid h-12 w-12 place-items-center rounded-full bg-white text-madarat-blue shadow-sm ring-1 ring-cyan-100">
+                                <Building2 className="h-6 w-6" />
+                            </span>
+                            <h3 className="mt-4 text-xl font-black text-madarat-navy">شركة تدريب</h3>
+                            <p className="mt-2 text-sm font-bold leading-7 text-slate-600">
+                                قدّم برامج مؤسستك في مكان واحد، أدِر الدورات وبيانات التسجيل، وعزّز موثوقية علامتك التدريبية.
+                            </p>
+                            <Link href="/register/training-company" className="mt-4 inline-flex items-center gap-2 text-sm font-black text-madarat-blue hover:text-madarat-cyan">
+                                إنشاء حساب شركة تدريب
+                                <ArrowUpRight className="h-4 w-4" />
+                            </Link>
+                        </div>
+                    </div>
+                </div>
             </section>
 
             <section className="mt-6 overflow-hidden rounded-lg border border-cyan-100 bg-white shadow-sm shadow-madarat-blue/5 lg:grid lg:grid-cols-[1fr_360px]">
