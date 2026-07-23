@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\CourseRecommendation;
+use App\Models\CourseEnrollment;
 use App\Models\CourseUserFeedback;
 use App\Models\JobSeekerProfile;
 use App\Models\TrainingCourse;
@@ -10,6 +11,7 @@ use App\Models\TrainingProviderProfile;
 use App\Models\User;
 use App\Services\CourseRecommendationService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
 class TrainingPlatformTest extends TestCase
@@ -78,12 +80,32 @@ class TrainingPlatformTest extends TestCase
         ]);
     }
 
+    public function test_course_lists_with_malformed_utf8_are_cleaned_before_json_storage(): void
+    {
+        $provider = $this->provider();
+
+        $this->actingAs($provider)
+            ->post('/training/courses', $this->courseData([
+                'learning_outcomes' => "مخرج عربي\nنص غير صالح \xC3\x28",
+            ]))
+            ->assertRedirect();
+
+        $course = TrainingCourse::where('training_provider_id', $provider->trainingProviderProfile->id)->firstOrFail();
+
+        $this->assertCount(2, $course->learning_outcomes);
+    }
+
     public function test_admin_course_rejection_requires_reason_and_public_catalogue_only_shows_published(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);
         $provider = $this->provider();
         $pending = TrainingCourse::factory()->for($provider->trainingProviderProfile, 'provider')->create(['status' => 'pending_review']);
         $draft = TrainingCourse::factory()->for($provider->trainingProviderProfile, 'provider')->create(['status' => 'draft']);
+        $this->actingAs($admin)->post("/admin/training/courses/{$pending->id}/reject", ['reason' => 'Needs outcomes'])->assertForbidden();
+        $this->assertSame('pending_review', $pending->fresh()->status);
+        $this->actingAs($admin)->get("/admin/training/courses/{$pending->id}/review")
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page->component('Admin/TrainingCourseReview')->where('course.id', $pending->id));
         $this->actingAs($admin)->post("/admin/training/courses/{$pending->id}/reject", [])->assertSessionHasErrors('reason');
         $this->actingAs($admin)->post("/admin/training/courses/{$pending->id}/reject", ['reason' => 'Needs outcomes']);
         $this->assertSame('rejected', $pending->fresh()->status);
@@ -117,6 +139,33 @@ class TrainingPlatformTest extends TestCase
         $course = TrainingCourse::factory()->create(['status' => 'published', 'skills_taught' => ['React']]);
         CourseRecommendation::create(['job_seeker_id' => $one->id, 'course_id' => $course->id, 'score' => 80, 'missing_skills_covered' => ['react'], 'evidence' => [], 'reason' => 'private reason marker', 'confidence' => .8, 'content_signature' => str_repeat('a', 64), 'recommended_at' => now()]);
         $this->actingAs($two)->get('/seeker/courses/recommended')->assertOk()->assertDontSee('private reason marker');
+    }
+
+    public function test_job_seeker_can_register_for_a_published_course_only_once(): void
+    {
+        $seeker = User::factory()->create(['role' => 'job_seeker']);
+        $course = TrainingCourse::factory()->create(['status' => 'published', 'capacity' => 2]);
+
+        $this->actingAs($seeker)->post("/courses/{$course->id}/register")->assertRedirect();
+        $this->actingAs($seeker)->post("/courses/{$course->id}/register")->assertRedirect();
+
+        $this->assertSame(1, CourseEnrollment::where('user_id', $seeker->id)->where('course_id', $course->id)->count());
+        $this->actingAs($seeker)->get('/seeker/courses/registrations')->assertOk()->assertSee($course->title);
+    }
+
+    public function test_course_registration_rejects_unpublished_expired_and_full_courses(): void
+    {
+        $seeker = User::factory()->create(['role' => 'job_seeker']);
+        $other = User::factory()->create(['role' => 'job_seeker']);
+        $draft = TrainingCourse::factory()->create(['status' => 'draft']);
+        $expired = TrainingCourse::factory()->create(['status' => 'published', 'registration_deadline' => today()->subDay()]);
+        $full = TrainingCourse::factory()->create(['status' => 'published', 'capacity' => 1]);
+        CourseEnrollment::create(['user_id' => $other->id, 'course_id' => $full->id, 'status' => 'registered', 'registered_at' => now()]);
+
+        $this->actingAs($seeker)->post("/courses/{$draft->id}/register")->assertNotFound();
+        $this->actingAs($seeker)->post("/courses/{$expired->id}/register")->assertSessionHas('error');
+        $this->actingAs($seeker)->post("/courses/{$full->id}/register")->assertSessionHas('error');
+        $this->assertDatabaseMissing('course_enrollments', ['user_id' => $seeker->id]);
     }
 
     private function provider(): User

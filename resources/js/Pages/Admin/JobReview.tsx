@@ -1,20 +1,18 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { Badge, Card, CompanyVerificationBadge, DashboardLayout } from '@/Components/Madarat';
 import { BriefcaseBusiness, Building2, CheckCircle2, MapPin, XCircle } from 'lucide-react';
+import DecisionModal from '@/Components/DecisionModal';
+import { useState } from 'react';
 
 const value = (text?: string | number | null) => text || 'غير محدد';
 
 export default function JobReview({ job }: { job: any }) {
-    const approve = () => {
-        if (window.confirm(`هل أنت متأكد من الموافقة على وظيفة «${job.title}» ونشرها للباحثين عن عمل؟`)) {
-            router.post(`/admin/jobs/${job.id}/approve`);
-        }
-    };
-
-    const reject = () => {
-        if (window.confirm(`هل أنت متأكد من رفض وظيفة «${job.title}» وإغلاقها؟ لا يمكن التراجع عن هذا الإجراء من هذه الصفحة.`)) {
-            router.post(`/admin/jobs/${job.id}/reject`);
-        }
+    const [decision, setDecision] = useState<'approve' | 'reject' | null>(null);
+    const [processing, setProcessing] = useState(false);
+    const submitDecision = () => {
+        if (!decision) return;
+        setProcessing(true);
+        router.post(`/admin/jobs/${job.id}/${decision}`, {}, { onFinish: () => setProcessing(false) });
     };
 
     return (
@@ -100,11 +98,11 @@ export default function JobReview({ job }: { job: any }) {
                             تأكد من قراءة جميع التفاصيل أعلاه. ستظهر رسالة تأكيد قبل تنفيذ القرار.
                         </p>
                         <div className="mt-4 grid gap-3">
-                            <button onClick={approve} className="inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-3 font-black text-white hover:bg-emerald-700">
+                            <button onClick={() => setDecision('approve')} className="inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-3 font-black text-white hover:bg-emerald-700">
                                 <CheckCircle2 className="h-5 w-5" />
                                 الموافقة ونشر الوظيفة
                             </button>
-                            <button onClick={reject} className="inline-flex items-center justify-center gap-2 rounded-lg bg-red-600 px-4 py-3 font-black text-white hover:bg-red-700">
+                            <button onClick={() => setDecision('reject')} className="inline-flex items-center justify-center gap-2 rounded-lg bg-red-600 px-4 py-3 font-black text-white hover:bg-red-700">
                                 <XCircle className="h-5 w-5" />
                                 رفض وإغلاق الوظيفة
                             </button>
@@ -112,6 +110,18 @@ export default function JobReview({ job }: { job: any }) {
                     </Card>
                 </div>
             </div>
+            <DecisionModal
+                show={decision !== null}
+                title={decision === 'approve' ? 'تأكيد نشر الوظيفة' : 'تأكيد رفض الوظيفة'}
+                message={decision === 'approve'
+                    ? `هل أنت متأكد من الموافقة على وظيفة «${job.title}» ونشرها للباحثين عن عمل؟`
+                    : `هل أنت متأكد من رفض وظيفة «${job.title}» وإغلاقها؟ لا يمكن التراجع عن هذا الإجراء من هذه الصفحة.`}
+                confirmLabel={decision === 'approve' ? 'نعم، انشر الوظيفة' : 'نعم، ارفض الوظيفة'}
+                danger={decision === 'reject'}
+                processing={processing}
+                onClose={() => setDecision(null)}
+                onConfirm={submitDecision}
+            />
         </DashboardLayout>
     );
 }

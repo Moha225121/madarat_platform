@@ -3,10 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\CourseUserFeedback;
+use App\Models\CourseEnrollment;
 use App\Models\TrainingCourse;
 use App\Services\CourseRecommendationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -24,7 +26,15 @@ class CourseCatalogueController extends Controller
         abort_unless($course->status === 'published', 404);
         $course->increment('views_count');
 
-        return Inertia::render('Courses/Show', ['course' => $course->load('provider'), 'feedback' => $request->user()?->role === 'job_seeker' ? CourseUserFeedback::firstWhere(['user_id' => $request->user()->id, 'course_id' => $course->id]) : null]);
+        $isSeeker = $request->user()?->role === 'job_seeker';
+
+        return Inertia::render('Courses/Show', [
+            'course' => $course->load('provider'),
+            'feedback' => $isSeeker ? CourseUserFeedback::firstWhere(['user_id' => $request->user()->id, 'course_id' => $course->id]) : null,
+            'canRegister' => $isSeeker,
+            'enrollment' => $isSeeker ? CourseEnrollment::firstWhere(['user_id' => $request->user()->id, 'course_id' => $course->id]) : null,
+            'remainingSeats' => $course->capacity === null ? null : max(0, $course->capacity - $course->enrollments()->where('status', 'registered')->count()),
+        ]);
     }
 
     public function recommendations(Request $request, CourseRecommendationService $service): Response
@@ -35,6 +45,50 @@ class CourseCatalogueController extends Controller
     public function saved(Request $request): Response
     {
         return Inertia::render('Courses/Saved', ['feedback' => $request->user()->courseFeedback()->with('course.provider')->where(fn ($q) => $q->where('saved', true)->orWhere('completed', true))->latest()->get()]);
+    }
+
+    public function registrations(Request $request): Response
+    {
+        return Inertia::render('Courses/Registrations', [
+            'enrollments' => $request->user()->courseEnrollments()->with('course.provider')->latest('registered_at')->get(),
+        ]);
+    }
+
+    public function register(TrainingCourse $course, Request $request): RedirectResponse
+    {
+        abort_unless($course->status === 'published', 404);
+
+        if ($course->registration_deadline?->isPast()) {
+            return back()->with('error', 'انتهى موعد التسجيل في هذه الدورة.');
+        }
+
+        $created = DB::transaction(function () use ($course, $request) {
+            $lockedCourse = TrainingCourse::query()->lockForUpdate()->findOrFail($course->id);
+            $existing = CourseEnrollment::where('user_id', $request->user()->id)->where('course_id', $course->id)->first();
+
+            if ($existing) {
+                return false;
+            }
+
+            if ($lockedCourse->capacity !== null && $lockedCourse->enrollments()->where('status', 'registered')->count() >= $lockedCourse->capacity) {
+                return null;
+            }
+
+            CourseEnrollment::create([
+                'user_id' => $request->user()->id,
+                'course_id' => $course->id,
+                'status' => 'registered',
+                'registered_at' => now(),
+            ]);
+
+            return true;
+        });
+
+        if ($created === null) {
+            return back()->with('error', 'عذرًا، اكتمل العدد المتاح لهذه الدورة.');
+        }
+
+        return back()->with('success', $created ? 'تم تسجيلك في الدورة بنجاح.' : 'أنت مسجل في هذه الدورة بالفعل.');
     }
 
     public function feedback(TrainingCourse $course, Request $request): RedirectResponse

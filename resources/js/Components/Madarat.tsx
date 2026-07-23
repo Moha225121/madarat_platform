@@ -184,8 +184,8 @@ export function DashboardLayout({ title, children }: PropsWithChildren<{ title: 
     const links = role === 'employer'
         ? [['/employer/dashboard', 'الرئيسية'], ['/employer/company', 'الشركة'], ['/employer/jobs/create', 'نشر وظيفة']]
         : role === 'admin'
-            ? [['/admin/dashboard', 'الرئيسية'], ['/admin/jobs/pending', 'مراجعة الوظائف'], ['/admin/companies/verification', 'توثيق الشركات']]
-            : [['/seeker/dashboard', 'الرئيسية'], ['/seeker/profile', 'ملفي'], ['/seeker/cv-analysis', 'تحليل السيرة'], ['/cv-builder', 'منشئ السيرة'], ['/seeker/applications', 'طلباتي'], ['/courses', 'الدورات المتاحة'], ['/seeker/courses/recommended', 'دورات مرشحة لي']];
+            ? [['/admin/dashboard', 'الرئيسية'], ['/admin/jobs/pending', 'مراجعة الوظائف'], ['/admin/training', 'مراجعة التدريب'], ['/admin/companies/verification', 'توثيق الشركات']]
+            : [['/seeker/dashboard', 'الرئيسية'], ['/seeker/profile', 'ملفي'], ['/seeker/cv-analysis', 'تحليل السيرة'], ['/cv-builder', 'منشئ السيرة'], ['/seeker/applications', 'طلباتي'], ['/courses', 'الدورات المتاحة'], ['/seeker/courses/registrations', 'دوراتي المسجّل بها'], ['/seeker/courses/recommended', 'دورات مرشحة لي']];
     return (
         <AppLayout>
             <div className="mb-6 flex flex-wrap items-center justify-between gap-3">

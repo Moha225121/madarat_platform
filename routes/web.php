@@ -82,6 +82,8 @@ Route::middleware(['auth', 'role:training_provider'])->prefix('training')->name(
 Route::middleware(['auth', 'role:job_seeker'])->group(function () {
     Route::get('/seeker/courses/recommended', [CourseCatalogueController::class, 'recommendations'])->name('seeker.courses.recommended');
     Route::get('/seeker/courses/saved', [CourseCatalogueController::class, 'saved'])->name('seeker.courses.saved');
+    Route::get('/seeker/courses/registrations', [CourseCatalogueController::class, 'registrations'])->name('seeker.courses.registrations');
+    Route::post('/courses/{course}/register', [CourseCatalogueController::class, 'register'])->name('courses.register');
     Route::post('/courses/{course}/feedback', [CourseCatalogueController::class, 'feedback'])->name('courses.feedback');
 });
 
@@ -97,6 +99,7 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::post('/admin/companies/{company}/reject-verification', [CompanyProfileController::class, 'rejectVerification'])->name('admin.companies.reject-verification');
     Route::get('/admin/training', [AdminTrainingController::class, 'index'])->name('admin.training.index');
     Route::get('/admin/training/providers/{provider}', [AdminTrainingController::class, 'provider'])->name('admin.training.providers.show');
+    Route::get('/admin/training/courses/{course}/review', [AdminTrainingController::class, 'course'])->name('admin.training.courses.review');
     Route::post('/admin/training/providers/{provider}/verify', [AdminTrainingController::class, 'verify'])->name('admin.training.providers.verify');
     Route::post('/admin/training/providers/{provider}/reject', [AdminTrainingController::class, 'rejectProvider'])->name('admin.training.providers.reject');
     Route::post('/admin/training/courses/{course}/approve', [AdminTrainingController::class, 'approveCourse'])->name('admin.training.courses.approve');

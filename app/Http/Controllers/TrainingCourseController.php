@@ -113,15 +113,35 @@ class TrainingCourseController extends Controller
 
     private function data(StoreTrainingCourseRequest $request): array
     {
-        $data = $request->validated();
+        $data = $this->sanitizeUtf8($request->validated());
         foreach (['learning_outcomes', 'skills_taught', 'prerequisites'] as $field) {
-            $data[$field] = is_array($data[$field] ?? null) ? array_values(array_filter($data[$field])) : preg_split('/[\r\n,،]+/', (string) ($data[$field] ?? ''), -1, PREG_SPLIT_NO_EMPTY);
-        } if ($request->hasFile('cover_image')) {
+            $items = is_array($data[$field] ?? null)
+                ? $data[$field]
+                : preg_split('/[\r\n,،]+/u', (string) ($data[$field] ?? ''), -1, PREG_SPLIT_NO_EMPTY);
+
+            $data[$field] = array_values(array_filter(
+                array_map(fn ($item) => trim(mb_scrub((string) $item, 'UTF-8')), $items ?: []),
+                fn ($item) => $item !== ''
+            ));
+        }
+
+        if ($request->hasFile('cover_image')) {
             $data['cover_image_path'] = $request->file('cover_image')->store('training-courses', 'public');
-        } unset($data['cover_image']);
+        }
+
+        unset($data['cover_image']);
         unset($data['submission_action']);
 
         return $data;
+    }
+
+    private function sanitizeUtf8(mixed $value): mixed
+    {
+        if (is_array($value)) {
+            return array_map(fn ($item) => $this->sanitizeUtf8($item), $value);
+        }
+
+        return is_string($value) ? mb_scrub($value, 'UTF-8') : $value;
     }
 
     private function slug(string $title): string

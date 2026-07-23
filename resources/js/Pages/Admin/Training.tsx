@@ -1,3 +1,37 @@
-import { Link, router } from '@inertiajs/react'; import { Badge, Card, DashboardLayout, StatCard, icons } from '@/Components/Madarat';
+import { Link } from '@inertiajs/react';
+import { Badge, Card, DashboardLayout, StatCard, icons } from '@/Components/Madarat';
 import { arabicLabel } from '@/lib/arabicLabels';
-export default function Training({providers,courses,stats}:any){const reason=(url:string)=>{const value=window.prompt('سبب الرفض (مطلوب)');if(value)router.post(url,{reason:value})};return <DashboardLayout title="إدارة التدريب"><div className="grid gap-4 md:grid-cols-4"><StatCard label="مقدمو التدريب" value={stats.providers} icon={icons.UserRound}/><StatCard label="موثقون" value={stats.verified} icon={icons.CheckCircle2}/><StatCard label="دورات منشورة" value={stats.published} icon={icons.BookOpen}/><StatCard label="بانتظار المراجعة" value={stats.pending} icon={icons.Clock}/></div><div className="mt-6 grid gap-5 lg:grid-cols-2"><Card><h2 className="font-black">مقدمو التدريب</h2><div className="mt-3 space-y-2">{providers.data.map((p:any)=><Link href={`/admin/training/providers/${p.id}`} key={p.id} className="flex justify-between rounded-lg bg-slate-50 p-3"><span>{p.display_name} · {arabicLabel('providerType',p.provider_type)}</span><Badge tone="cyan">{arabicLabel('providerStatus',p.verification_status)}</Badge></Link>)}</div></Card><Card><h2 className="font-black">دورات بانتظار المراجعة</h2><div className="mt-3 space-y-3">{courses.data.map((c:any)=><div key={c.id} className="rounded-lg bg-slate-50 p-3"><strong>{c.title}</strong><p className="text-sm text-slate-500">{c.provider.display_name}</p><div className="mt-2 flex gap-2"><button onClick={()=>router.post(`/admin/training/courses/${c.id}/approve`)} className="rounded bg-green-600 px-3 py-1 text-white">نشر</button><button onClick={()=>reason(`/admin/training/courses/${c.id}/reject`)} className="rounded bg-red-600 px-3 py-1 text-white">رفض</button></div></div>)}</div></Card></div></DashboardLayout>}
+
+export default function Training({ providers, courses, stats }: any) {
+    return <DashboardLayout title="إدارة التدريب">
+        <div className="grid gap-4 md:grid-cols-4">
+            <StatCard label="مقدمو التدريب" value={stats.providers} icon={icons.UserRound} />
+            <StatCard label="موثقون" value={stats.verified} icon={icons.CheckCircle2} />
+            <StatCard label="دورات منشورة" value={stats.published} icon={icons.BookOpen} />
+            <StatCard label="بانتظار المراجعة" value={stats.pending} icon={icons.Clock} />
+        </div>
+        <div className="mt-6 grid gap-5 lg:grid-cols-2">
+            <Card>
+                <h2 className="font-black">مقدمو التدريب</h2>
+                <div className="mt-3 space-y-2">
+                    {providers.data.map((provider: any) => <Link href={`/admin/training/providers/${provider.id}`} key={provider.id} className="flex justify-between rounded-lg bg-slate-50 p-3">
+                        <span>{provider.display_name} · {arabicLabel('providerType', provider.provider_type)}</span>
+                        <Badge tone="cyan">{arabicLabel('providerStatus', provider.verification_status)}</Badge>
+                    </Link>)}
+                </div>
+            </Card>
+            <Card>
+                <h2 className="font-black">دورات بانتظار المراجعة</h2>
+                <div className="mt-3 space-y-3">
+                    {courses.data.length ? courses.data.map((course: any) => <div key={course.id} className="rounded-lg bg-slate-50 p-3">
+                        <strong>{course.title}</strong>
+                        <p className="text-sm text-slate-500">{course.provider.display_name}</p>
+                        <Link href={`/admin/training/courses/${course.id}/review`} className="mt-3 inline-flex rounded-lg bg-madarat-blue px-4 py-2 text-sm font-black text-white hover:bg-madarat-navy">
+                            عرض التفاصيل واتخاذ القرار
+                        </Link>
+                    </div>) : <p className="text-sm text-slate-500">لا توجد دورات بانتظار المراجعة.</p>}
+                </div>
+            </Card>
+        </div>
+    </DashboardLayout>;
+}

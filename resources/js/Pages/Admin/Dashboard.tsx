@@ -1,15 +1,33 @@
 import { Link } from '@inertiajs/react';
 import { Badge, Card, CompanyVerificationBadge, DashboardLayout, StatCard, icons } from '@/Components/Madarat';
 
-export default function AdminDashboard({ stats, pendingJobs, pendingCompanies = [], growth }: any) {
+export default function AdminDashboard({ stats, pendingJobs, pendingCompanies = [], pendingCourses = [], growth }: any) {
     return (
         <DashboardLayout title="لوحة الإدارة">
-            <div className="grid gap-4 md:grid-cols-4">
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
                 <StatCard label="إجمالي الباحثين" value={stats.seekers} icon={icons.UserRound} />
                 <StatCard label="إجمالي الشركات" value={stats.companies} icon={icons.Building2} />
                 <StatCard label="إجمالي الوظائف" value={stats.jobs} icon={icons.BriefcaseBusiness} />
                 <StatCard label="طلبات توثيق الشركات" value={stats.pendingCompanies || 0} icon={icons.CheckCircle2} />
+                <StatCard label="دورات قيد المراجعة" value={stats.pendingCourses || 0} icon={icons.BookOpen} />
             </div>
+
+            <Card className="mt-6">
+                <h2 className="font-black text-madarat-navy">دورات بانتظار المراجعة</h2>
+                <div className="mt-4 grid gap-3 md:grid-cols-2">
+                    {pendingCourses.length ? pendingCourses.map((course: any) => (
+                        <div key={course.id} className="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-slate-50 p-3">
+                            <div>
+                                <strong>{course.title}</strong>
+                                <p className="mt-1 text-sm text-slate-500">{course.provider?.display_name}</p>
+                            </div>
+                            <Link href={`/admin/training/courses/${course.id}/review`} className="rounded-lg bg-madarat-blue px-4 py-2 text-sm font-bold text-white hover:bg-madarat-navy">
+                                عرض التفاصيل واتخاذ القرار
+                            </Link>
+                        </div>
+                    )) : <p className="text-sm text-slate-500">لا توجد دورات بانتظار المراجعة.</p>}
+                </div>
+            </Card>
 
             <div className="mt-6 grid gap-5 lg:grid-cols-2">
                 <Card>

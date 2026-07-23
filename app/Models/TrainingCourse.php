@@ -38,6 +38,11 @@ class TrainingCourse extends Model
         return $this->hasMany(CourseRecommendation::class, 'course_id');
     }
 
+    public function enrollments(): HasMany
+    {
+        return $this->hasMany(CourseEnrollment::class, 'course_id');
+    }
+
     public function analysisIsStale(): bool
     {
         return $this->analysis_content_hash !== $this->contentHash();
