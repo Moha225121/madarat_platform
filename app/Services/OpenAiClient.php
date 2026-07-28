@@ -21,7 +21,9 @@ class OpenAiClient
 
         $response = Http::withToken(config('services.openai.key'))
             ->acceptJson()
-            ->timeout(45)
+            ->connectTimeout(config('services.openai.connect_timeout'))
+            ->timeout(config('services.openai.timeout'))
+            ->retry(2, 500, throw: false)
             ->post(rtrim(config('services.openai.base_url'), '/').'/responses', [
                 'model' => $options['model'] ?? config('services.openai.model'),
                 'instructions' => $instructions,
@@ -46,7 +48,9 @@ class OpenAiClient
 
         $response = Http::withToken(config('services.openai.key'))
             ->acceptJson()
-            ->timeout(90)
+            ->connectTimeout(config('services.openai.connect_timeout'))
+            ->timeout(config('services.openai.file_timeout'))
+            ->retry(2, 500, throw: false)
             ->post(rtrim(config('services.openai.base_url'), '/').'/responses', [
                 'model' => $options['model'] ?? config('services.openai.model'),
                 'instructions' => $instructions,
@@ -89,7 +93,9 @@ class OpenAiClient
 
         $response = Http::withToken(config('services.openai.key'))
             ->acceptJson()
-            ->timeout(90)
+            ->connectTimeout(config('services.openai.connect_timeout'))
+            ->timeout(config('services.openai.file_timeout'))
+            ->retry(2, 500, throw: false)
             ->post(rtrim(config('services.openai.base_url'), '/').'/responses', [
                 'model' => $options['model'] ?? config('services.openai.model'),
                 'instructions' => $instructions,

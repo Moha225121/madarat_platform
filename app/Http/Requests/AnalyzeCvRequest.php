@@ -23,7 +23,16 @@ class AnalyzeCvRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'cv' => ['required', 'file', 'mimes:pdf,doc,docx', 'max:5120'],
+            'cv' => ['required', 'file', 'mimes:pdf,doc,docx', 'max:15360'],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'cv.required' => 'يرجى اختيار ملف السيرة الذاتية.',
+            'cv.mimes' => 'يجب أن تكون السيرة بصيغة PDF أو DOC أو DOCX.',
+            'cv.max' => 'يجب ألا يتجاوز حجم السيرة الذاتية 15 ميجابايت.',
         ];
     }
 }
