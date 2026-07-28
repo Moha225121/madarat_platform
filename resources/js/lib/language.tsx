@@ -4,8 +4,10 @@ import {
     PropsWithChildren,
     useContext,
     useEffect,
+    useRef,
     useState,
 } from 'react';
+import { englishTranslations } from './englishTranslations';
 
 export type Locale = 'ar' | 'en';
 
@@ -26,6 +28,8 @@ function savedLocale(): Locale {
 
 export function LanguageProvider({ children }: PropsWithChildren) {
     const [locale, setLocale] = useState<Locale>(savedLocale);
+    const originalTextRef = useRef(new WeakMap<Text, string>());
+    const originalAttributesRef = useRef(new WeakMap<Element, Map<string, string>>());
 
     useEffect(() => {
         const direction = locale === 'ar' ? 'rtl' : 'ltr';
@@ -34,6 +38,102 @@ export function LanguageProvider({ children }: PropsWithChildren) {
         document.documentElement.dir = direction;
         document.body.dir = direction;
         window.localStorage.setItem('madarat-locale', locale);
+
+        const originalText = originalTextRef.current;
+        const originalAttributes = originalAttributesRef.current;
+        const translatableAttributes = ['placeholder', 'title', 'aria-label', 'alt'];
+        let applyingTranslation = false;
+
+        const translate = (value: string) => {
+            const normalized = value.replace(/\s+/g, ' ').trim();
+            const direct = englishTranslations[normalized];
+
+            if (direct) {
+                const leading = value.match(/^\s*/)?.[0] ?? '';
+                const trailing = value.match(/\s*$/)?.[0] ?? '';
+                return `${leading}${direct}${trailing}`;
+            }
+
+            return value;
+        };
+
+        const processElement = (root: ParentNode) => {
+            applyingTranslation = true;
+
+            const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+            let node = walker.nextNode() as Text | null;
+
+            while (node) {
+                const parent = node.parentElement;
+                if (parent && !['SCRIPT', 'STYLE'].includes(parent.tagName)) {
+                    if (/[\u0600-\u06ff]/.test(node.data)) {
+                        originalText.set(node, node.data);
+                    }
+
+                    const original = originalText.get(node);
+                    if (original) {
+                        const nextValue = locale === 'en' ? translate(original) : original;
+                        if (node.data !== nextValue) node.data = nextValue;
+                    }
+                }
+                node = walker.nextNode() as Text | null;
+            }
+
+            const elements = root instanceof Element
+                ? [root, ...root.querySelectorAll('*')]
+                : [...root.querySelectorAll('*')];
+
+            for (const element of elements) {
+                let originals = originalAttributes.get(element);
+                if (!originals) {
+                    originals = new Map();
+                    originalAttributes.set(element, originals);
+                }
+
+                for (const attribute of translatableAttributes) {
+                    const value = element.getAttribute(attribute);
+                    if (value && /[\u0600-\u06ff]/.test(value)) originals.set(attribute, value);
+                    const original = originals.get(attribute);
+                    if (original) {
+                        const nextValue = locale === 'en' ? translate(original) : original;
+                        if (value !== nextValue) element.setAttribute(attribute, nextValue);
+                    }
+                }
+            }
+
+            applyingTranslation = false;
+        };
+
+        processElement(document.body);
+
+        const observer = new MutationObserver((mutations) => {
+            if (applyingTranslation) return;
+
+            for (const mutation of mutations) {
+                if (mutation.type === 'characterData' && mutation.target.parentNode) {
+                    processElement(mutation.target.parentNode);
+                }
+
+                for (const addedNode of mutation.addedNodes) {
+                    if (addedNode instanceof Element) processElement(addedNode);
+                    if (addedNode instanceof Text && addedNode.parentNode) processElement(addedNode.parentNode);
+                }
+
+                if (mutation.type === 'attributes' && mutation.target instanceof Element) {
+                    processElement(mutation.target);
+                }
+            }
+        });
+
+        observer.observe(document.body, {
+            subtree: true,
+            childList: true,
+            characterData: true,
+            attributes: true,
+            attributeFilter: translatableAttributes,
+        });
+
+        return () => observer.disconnect();
     }, [locale]);
 
     return (
