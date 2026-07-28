@@ -1,10 +1,12 @@
 import ApplicationLogo from '@/Components/ApplicationLogo';
 import { Link } from '@inertiajs/react';
 import { PropsWithChildren } from 'react';
+import { LanguageSwitcher } from '@/lib/language';
 
 export default function Guest({ children }: PropsWithChildren) {
     return (
         <div className="madarat-shell flex min-h-screen flex-col items-center px-4 pt-6 sm:justify-center sm:pt-0">
+            <LanguageSwitcher className="fixed end-4 top-4 z-20" />
             <div className="pointer-events-none fixed -left-24 top-12 h-80 w-80 rounded-full border-[42px] border-madarat-cyan/10" />
             <div className="pointer-events-none fixed bottom-10 right-8 h-48 w-48 rounded-full border-[26px] border-madarat-blue/10" />
 

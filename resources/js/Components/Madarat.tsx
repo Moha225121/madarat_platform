@@ -1,7 +1,8 @@
 import { ButtonHTMLAttributes, FormEvent, PropsWithChildren, useEffect, useState } from 'react';
 import { Link, router, useForm, usePage } from '@inertiajs/react';
-import { Bot, BookOpen, BriefcaseBusiness, Building2, CheckCircle2, Clock, Eye, FileText, Gauge, Languages, LoaderCircle, MessageCircle, Send, Sparkles, Target, UserRound, X, XCircle } from 'lucide-react';
+import { Bot, BookOpen, BriefcaseBusiness, Building2, CheckCircle2, Clock, Eye, FileText, Gauge, LoaderCircle, MessageCircle, Send, Sparkles, Target, UserRound, X, XCircle } from 'lucide-react';
 import axios from 'axios';
+import { LanguageSwitcher, useLanguage } from '@/lib/language';
 
 export type Job = {
     id: number;
@@ -151,24 +152,25 @@ export function FlashMessage() {
 export function AppLayout({ children }: PropsWithChildren) {
     const { props } = usePage<any>();
     const user = props.auth?.user;
+    const { t } = useLanguage();
     return (
         <div className="madarat-shell min-h-screen bg-madarat-gray">
             <header className="sticky top-0 z-30 border-b border-cyan-100/70 bg-white/90 backdrop-blur-xl">
                 <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
                     <MadaratLogo />
                     <nav className="flex items-center gap-2 text-sm font-bold text-madarat-dark">
-                        <Link href="/jobs" className="rounded-lg px-3 py-2 hover:bg-madarat-sky">الوظائف</Link>
-                        <Link href="/cv-builder" className="rounded-lg px-3 py-2 hover:bg-madarat-sky">منشئ السيرة</Link>
+                        <Link href="/jobs" className="rounded-lg px-3 py-2 hover:bg-madarat-sky">{t('الوظائف', 'Jobs')}</Link>
+                        <Link href="/cv-builder" className="rounded-lg px-3 py-2 hover:bg-madarat-sky">{t('منشئ السيرة', 'CV Builder')}</Link>
                         {user ? (
-                            <Link href="/dashboard" className="rounded-lg px-3 py-2 hover:bg-madarat-sky">لوحتي</Link>
+                            <Link href="/dashboard" className="rounded-lg px-3 py-2 hover:bg-madarat-sky">{t('لوحتي', 'Dashboard')}</Link>
                         ) : (
                             <>
-                                <Link href="/login" className="rounded-lg px-3 py-2 hover:bg-madarat-sky">دخول</Link>
-                                <Link href="/register/job-seeker" className="rounded-lg bg-madarat-blue px-4 py-2 text-white shadow-sm shadow-madarat-blue/20 hover:bg-madarat-navy">إنشاء حساب</Link>
+                                <Link href="/login" className="rounded-lg px-3 py-2 hover:bg-madarat-sky">{t('دخول', 'Sign in')}</Link>
+                                <Link href="/register/job-seeker" className="rounded-lg bg-madarat-blue px-4 py-2 text-white shadow-sm shadow-madarat-blue/20 hover:bg-madarat-navy">{t('إنشاء حساب', 'Create account')}</Link>
                             </>
                         )}
-                        {user && <button onClick={() => router.post('/logout')} className="rounded-lg px-3 py-2 text-slate-500 hover:bg-slate-100">خروج</button>}
-                        <span className="hidden items-center gap-1 rounded-lg bg-slate-100 px-3 py-2 text-slate-500 sm:flex"><Languages className="h-4 w-4" /> العربية</span>
+                        {user && <button onClick={() => router.post('/logout')} className="rounded-lg px-3 py-2 text-slate-500 hover:bg-slate-100">{t('خروج', 'Sign out')}</button>}
+                        <LanguageSwitcher className="hidden sm:inline-flex" />
                     </nav>
                 </div>
             </header>

@@ -4,10 +4,17 @@
 
 @layer base {
     body {
-        direction: rtl;
         background: #f4f7fa;
         color: #102a43;
         font-family: Tajawal, Cairo, Figtree, ui-sans-serif, system-ui, sans-serif;
+    }
+
+    html[dir='rtl'] body {
+        direction: rtl;
+    }
+
+    html[dir='ltr'] body {
+        direction: ltr;
     }
 }
 
