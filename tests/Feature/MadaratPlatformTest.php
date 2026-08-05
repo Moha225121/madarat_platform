@@ -140,6 +140,32 @@ class MadaratPlatformTest extends TestCase
         $this->actingAs($seeker)->get('/admin/dashboard')->assertForbidden();
     }
 
+    public function test_admin_can_delete_job_seeker_account(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $seeker = User::factory()->create(['role' => 'job_seeker']);
+        JobSeekerProfile::create(['user_id' => $seeker->id]);
+
+        $this->actingAs($admin)
+            ->delete("/admin/job-seekers/{$seeker->id}")
+            ->assertRedirect('/admin/job-seekers');
+
+        $this->assertDatabaseMissing('users', ['id' => $seeker->id]);
+        $this->assertDatabaseMissing('job_seeker_profiles', ['user_id' => $seeker->id]);
+    }
+
+    public function test_admin_cannot_delete_non_job_seeker_from_job_seeker_directory(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $employer = User::factory()->create(['role' => 'employer']);
+
+        $this->actingAs($admin)
+            ->delete("/admin/job-seekers/{$employer->id}")
+            ->assertNotFound();
+
+        $this->assertDatabaseHas('users', ['id' => $employer->id]);
+    }
+
     public function test_admin_must_review_job_details_before_approving_or_rejecting(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);

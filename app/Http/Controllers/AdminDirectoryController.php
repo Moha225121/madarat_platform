@@ -10,6 +10,7 @@ use App\Models\JobSeekerProfile;
 use App\Models\TrainingProviderProfile;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -83,6 +84,15 @@ class AdminDirectoryController extends Controller
                 'recommendedCourses' => CourseRecommendation::query()->where('job_seeker_id', $seeker->id)->count(),
             ],
         ]);
+    }
+
+    public function destroySeeker(User $seeker): RedirectResponse
+    {
+        abort_unless($seeker->role === 'job_seeker', 404);
+
+        $seeker->delete();
+
+        return redirect()->route('admin.seekers.index')->with('success', 'تم حذف الباحث عن عمل بنجاح.');
     }
 
     public function companies(Request $request): Response

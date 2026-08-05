@@ -23,6 +23,7 @@ export default function JobSeekers({ seekers, stats, filters, filterOptions }: a
         field: filters.field || '',
         cv_status: filters.cv_status || '',
     });
+    const [deletingId, setDeletingId] = useState<number | null>(null);
 
     const submit = (event: FormEvent) => {
         event.preventDefault();
@@ -33,6 +34,18 @@ export default function JobSeekers({ seekers, stats, filters, filterOptions }: a
         const empty = { q: '', city: '', field: '', cv_status: '' };
         setForm(empty);
         router.get('/admin/job-seekers', empty, { preserveState: true, replace: true });
+    };
+
+    const deleteSeeker = (seeker: any) => {
+        if (!confirm(`هل أنت متأكد من حذف الباحث ${seeker.name}؟ سيُحذف الحساب وبياناته نهائيًا.`)) {
+            return;
+        }
+
+        setDeletingId(seeker.id);
+        router.delete(`/admin/job-seekers/${seeker.id}`, {
+            preserveScroll: true,
+            onFinish: () => setDeletingId(null),
+        });
     };
 
     return (
@@ -96,6 +109,14 @@ export default function JobSeekers({ seekers, stats, filters, filterOptions }: a
                                     <Link href={`/admin/job-seekers/${seeker.id}`} className="rounded-lg bg-madarat-blue px-4 py-2 text-sm font-black text-white hover:bg-madarat-navy">
                                         عرض التفاصيل
                                     </Link>
+                                    <button
+                                        type="button"
+                                        onClick={() => deleteSeeker(seeker)}
+                                        disabled={deletingId === seeker.id}
+                                        className="rounded-lg bg-red-600 px-4 py-2 text-sm font-black text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
+                                    >
+                                        {deletingId === seeker.id ? 'جاري الحذف...' : 'حذف'}
+                                    </button>
                                 </div>
                             </div>
                         </div>

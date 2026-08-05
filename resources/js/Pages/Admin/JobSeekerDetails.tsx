@@ -1,6 +1,7 @@
-import { Link } from '@inertiajs/react';
+import { Link, router } from '@inertiajs/react';
 import { Badge, Card, DashboardLayout, StatCard, icons } from '@/Components/Madarat';
 import { arabicLabel } from '@/lib/arabicLabels';
+import { useState } from 'react';
 
 const statusLabel: Record<string, string> = {
     uploaded: 'تم رفع السيرة',
@@ -11,11 +12,31 @@ const statusLabel: Record<string, string> = {
 
 export default function JobSeekerDetails({ seeker, stats }: any) {
     const profile = seeker.job_seeker_profile;
+    const [deleting, setDeleting] = useState(false);
+
+    const deleteSeeker = () => {
+        if (!confirm(`هل أنت متأكد من حذف الباحث ${seeker.name}؟ سيُحذف الحساب وبياناته نهائيًا.`)) {
+            return;
+        }
+
+        setDeleting(true);
+        router.delete(`/admin/job-seekers/${seeker.id}`, {
+            onFinish: () => setDeleting(false),
+        });
+    };
 
     return (
         <DashboardLayout title="تفاصيل الباحث عن عمل">
-            <div className="mb-4">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                 <Link href="/admin/job-seekers" className="text-sm font-black text-madarat-blue hover:underline">العودة إلى القائمة</Link>
+                <button
+                    type="button"
+                    onClick={deleteSeeker}
+                    disabled={deleting}
+                    className="rounded-lg bg-red-600 px-4 py-2 text-sm font-black text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                    {deleting ? 'جاري الحذف...' : 'حذف الباحث'}
+                </button>
             </div>
 
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-6">
