@@ -7,6 +7,7 @@ use App\Models\Application;
 use App\Models\InterviewInvitation;
 use App\Models\Job;
 use App\Services\MatchingService;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -35,6 +36,47 @@ class ApplicationController extends Controller
     {
         return Inertia::render('Seeker/Applications', [
             'applications' => $request->user()->applications()->with('job.companyProfile', 'interviewInvitation')->latest()->get(),
+        ]);
+    }
+
+    public function adminIndex(Request $request): Response
+    {
+        $filters = $request->only(['q', 'status']);
+
+        $applications = Application::query()
+            ->with(['user.jobSeekerProfile', 'job.companyProfile'])
+            ->when($filters['status'] ?? null, fn (Builder $query, string $value) => $query->where('status', $value))
+            ->when($filters['q'] ?? null, function (Builder $query, string $value): void {
+                $query->where(function (Builder $inner) use ($value): void {
+                    $inner
+                        ->whereHas('user', fn (Builder $user) => $user->where('name', 'like', "%{$value}%")->orWhere('email', 'like', "%{$value}%"))
+                        ->orWhereHas('job', fn (Builder $job) => $job->where('title', 'like', "%{$value}%"))
+                        ->orWhereHas('job.companyProfile', fn (Builder $company) => $company->where('company_name', 'like', "%{$value}%"));
+                });
+            })
+            ->latest()
+            ->paginate(15)
+            ->withQueryString();
+
+        return Inertia::render('Admin/Applications', [
+            'applications' => $applications,
+            'filters' => $filters,
+            'stats' => [
+                'total' => Application::count(),
+                'submitted' => Application::where('status', 'submitted')->count(),
+                'shortlisted' => Application::where('status', 'shortlisted')->count(),
+                'interviews' => Application::where('status', 'interview_invited')->count(),
+            ],
+            'statusOptions' => Application::query()->whereNotNull('status')->distinct()->orderBy('status')->pluck('status'),
+        ]);
+    }
+
+    public function adminShow(Application $application): Response
+    {
+        $application->load(['user.jobSeekerProfile', 'job.companyProfile.user', 'interviewInvitation']);
+
+        return Inertia::render('Admin/ApplicationDetails', [
+            'application' => $application,
         ]);
     }
 

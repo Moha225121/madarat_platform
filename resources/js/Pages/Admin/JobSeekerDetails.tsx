@@ -70,7 +70,10 @@ export default function JobSeekerDetails({ seeker, stats }: any) {
                         <div className="mt-4 space-y-3">
                             {seeker.applications.length ? seeker.applications.map((application: any) => (
                                 <div key={application.id} className="rounded-lg bg-slate-50 p-3">
-                                    <p className="font-black">{application.job?.title || 'وظيفة محذوفة'}</p>
+                                    <div className="flex flex-wrap items-start justify-between gap-3">
+                                        <p className="font-black">{application.job?.title || 'وظيفة محذوفة'}</p>
+                                        <Link href={`/admin/applications/${application.id}`} className="text-xs font-black text-madarat-blue hover:underline">عرض الطلب</Link>
+                                    </div>
                                     <p className="mt-1 text-sm text-slate-500">{application.job?.company_profile?.company_name || 'شركة غير متاحة'}</p>
                                     <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
                                         <Badge tone="cyan">{arabicLabel('applicationStatus', application.status)}</Badge>

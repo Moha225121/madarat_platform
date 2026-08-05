@@ -40,6 +40,7 @@ const labels: Record<string, Record<string, string>> = {
         EUR: 'يورو',
     },
     applicationStatus: {
+        submitted: 'تم التقديم',
         pending: 'قيد المراجعة',
         shortlisted: 'في القائمة المختصرة',
         interview_invited: 'تمت دعوته للمقابلة',

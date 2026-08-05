@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\CompanyProfile;
+use App\Models\Application;
 use App\Models\Job;
 use App\Models\JobSeekerProfile;
 use App\Models\User;
@@ -164,6 +165,43 @@ class MadaratPlatformTest extends TestCase
             ->assertNotFound();
 
         $this->assertDatabaseHas('users', ['id' => $employer->id]);
+    }
+
+    public function test_admin_can_view_job_applications_and_details(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $employer = User::factory()->create(['role' => 'employer']);
+        $company = CompanyProfile::create(['user_id' => $employer->id, 'company_name' => 'شركة الطلبات']);
+        $job = Job::create([
+            'company_profile_id' => $company->id,
+            'title' => 'محلل نظم',
+            'slug' => 'systems-analyst',
+            'description' => 'وصف الوظيفة',
+            'status' => 'published',
+        ]);
+        $seeker = User::factory()->create(['role' => 'job_seeker', 'name' => 'باحث الطلبات']);
+        JobSeekerProfile::create(['user_id' => $seeker->id, 'field' => 'تقنية المعلومات']);
+        $application = Application::create([
+            'job_id' => $job->id,
+            'user_id' => $seeker->id,
+            'cover_letter' => 'رسالة تقديم',
+            'match_score' => 75,
+            'match_summary' => 'مطابقة جيدة',
+        ]);
+
+        $this->actingAs($admin)
+            ->get('/admin/applications')
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Admin/Applications')
+                ->where('applications.data.0.id', $application->id));
+
+        $this->get("/admin/applications/{$application->id}")
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Admin/ApplicationDetails')
+                ->where('application.id', $application->id)
+                ->where('application.user.name', 'باحث الطلبات'));
     }
 
     public function test_admin_must_review_job_details_before_approving_or_rejecting(): void

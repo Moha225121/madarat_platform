@@ -186,7 +186,7 @@ export function DashboardLayout({ title, children }: PropsWithChildren<{ title: 
     const links = role === 'employer'
         ? [['/employer/dashboard', 'الرئيسية'], ['/employer/company', 'الشركة'], ['/employer/jobs/create', 'نشر وظيفة']]
         : role === 'admin'
-            ? [['/admin/dashboard', 'الرئيسية'], ['/admin/job-seekers', 'الباحثون عن عمل'], ['/admin/companies', 'الشركات'], ['/admin/trainers', 'مزودو التدريب'], ['/admin/jobs/pending', 'مراجعة الوظائف'], ['/admin/training', 'مراجعة التدريب'], ['/admin/companies/verification', 'توثيق الشركات']]
+            ? [['/admin/dashboard', 'الرئيسية'], ['/admin/job-seekers', 'الباحثون عن عمل'], ['/admin/applications', 'طلبات التوظيف'], ['/admin/companies', 'الشركات'], ['/admin/trainers', 'مزودو التدريب'], ['/admin/jobs/pending', 'مراجعة الوظائف'], ['/admin/training', 'مراجعة التدريب'], ['/admin/companies/verification', 'توثيق الشركات']]
             : [['/seeker/dashboard', 'الرئيسية'], ['/seeker/profile', 'ملفي'], ['/seeker/cv-analysis', 'تحليل السيرة'], ['/cv-builder', 'منشئ السيرة'], ['/seeker/applications', 'طلباتي'], ['/courses', 'الدورات المتاحة'], ['/seeker/courses/registrations', 'دوراتي المسجّل بها'], ['/seeker/courses/recommended', 'دورات مرشحة لي']];
     return (
         <AppLayout>
@@ -198,6 +198,40 @@ export function DashboardLayout({ title, children }: PropsWithChildren<{ title: 
             </div>
             {children}
         </AppLayout>
+    );
+}
+
+export function Pagination({ paginator }: { paginator: any }) {
+    if (!paginator || paginator.last_page <= 1) return null;
+
+    const label = (value: string) => {
+        if (value.includes('Previous')) return 'السابق';
+        if (value.includes('Next')) return 'التالي';
+
+        return value.replace('&laquo;', '').replace('&raquo;', '').trim();
+    };
+
+    return (
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+            <p className="text-xs text-slate-500">صفحة {paginator.current_page} من {paginator.last_page}</p>
+            <div className="flex flex-wrap gap-2">
+                {paginator.links.map((link: any, index: number) => link.url ? (
+                    <Link
+                        key={`${link.label}-${index}`}
+                        href={link.url}
+                        preserveScroll
+                        preserveState
+                        className={`rounded-lg px-3 py-1.5 text-sm font-bold ring-1 ${link.active ? 'bg-madarat-blue text-white ring-madarat-blue' : 'bg-white text-slate-700 ring-slate-200 hover:bg-madarat-sky hover:text-madarat-blue'}`}
+                    >
+                        {label(link.label)}
+                    </Link>
+                ) : (
+                    <span key={`${link.label}-${index}`} className="cursor-not-allowed rounded-lg bg-slate-100 px-3 py-1.5 text-sm font-bold text-slate-400 ring-1 ring-slate-200">
+                        {label(link.label)}
+                    </span>
+                ))}
+            </div>
+        </div>
     );
 }
 

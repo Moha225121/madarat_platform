@@ -1,6 +1,6 @@
 import { FormEvent, useState } from 'react';
 import { Link, router } from '@inertiajs/react';
-import { Badge, Card, DashboardLayout, StatCard, icons } from '@/Components/Madarat';
+import { Badge, Card, DashboardLayout, Pagination, StatCard, icons } from '@/Components/Madarat';
 
 const statusLabel: Record<string, string> = {
     uploaded: 'تم رفع السيرة',
@@ -123,13 +123,7 @@ export default function JobSeekers({ seekers, stats, filters, filterOptions }: a
                     )) : <p className="text-sm text-slate-500">لا توجد نتائج مطابقة.</p>}
                 </div>
 
-                <div className="mt-4 flex items-center justify-between">
-                    <p className="text-xs text-slate-500">صفحة {seekers.current_page} من {seekers.last_page}</p>
-                    <div className="flex gap-2">
-                        {seekers.prev_page_url && <Link href={seekers.prev_page_url} className="rounded-lg bg-white px-3 py-1.5 text-sm font-bold text-slate-700 ring-1 ring-slate-200">السابق</Link>}
-                        {seekers.next_page_url && <Link href={seekers.next_page_url} className="rounded-lg bg-white px-3 py-1.5 text-sm font-bold text-slate-700 ring-1 ring-slate-200">التالي</Link>}
-                    </div>
-                </div>
+                <Pagination paginator={seekers} />
             </Card>
         </DashboardLayout>
     );
