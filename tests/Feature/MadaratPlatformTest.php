@@ -2,8 +2,8 @@
 
 namespace Tests\Feature;
 
-use App\Models\CompanyProfile;
 use App\Models\Application;
+use App\Models\CompanyProfile;
 use App\Models\Job;
 use App\Models\JobSeekerProfile;
 use App\Models\User;
@@ -127,6 +127,41 @@ class MadaratPlatformTest extends TestCase
     {
         $company = CompanyProfile::create(['user_id' => User::factory()->create(['role' => 'employer'])->id, 'company_name' => 'شركة']);
         $job = Job::create(['company_profile_id' => $company->id, 'title' => 'مطور', 'slug' => 'dev', 'description' => 'وصف', 'required_skills' => ['Laravel', 'React'], 'status' => 'published']);
+        $profile = JobSeekerProfile::create(['user_id' => User::factory()->create(['role' => 'job_seeker'])->id, 'extracted_skills' => ['Laravel']]);
+
+        $this->assertSame(50, app(MatchingService::class)->match($job, $profile)['score']);
+    }
+
+    public function test_matching_normalizes_skills_location_and_arabic_field(): void
+    {
+        $company = CompanyProfile::create(['user_id' => User::factory()->create(['role' => 'employer'])->id, 'company_name' => 'Company']);
+        $job = Job::create([
+            'company_profile_id' => $company->id,
+            'title' => 'مُطوّر برمجيات',
+            'slug' => 'normalized-match',
+            'description' => 'Description',
+            'required_skills' => ['React.js', 'Laravel'],
+            'location' => 'Tripoli - Libya',
+            'status' => 'published',
+        ]);
+        $profile = JobSeekerProfile::create([
+            'user_id' => User::factory()->create(['role' => 'job_seeker'])->id,
+            'extracted_skills' => ['ReactJS development', 'laravel framework'],
+            'city' => ' tripoli, libya ',
+            'field' => 'مطور',
+        ]);
+
+        $match = app(MatchingService::class)->match($job, $profile);
+
+        $this->assertSame(100, $match['score']);
+        $this->assertSame(['React.js', 'Laravel'], $match['matched_skills']);
+        $this->assertSame([], $match['missing_skills']);
+    }
+
+    public function test_matching_does_not_count_duplicate_required_skills_twice(): void
+    {
+        $company = CompanyProfile::create(['user_id' => User::factory()->create(['role' => 'employer'])->id, 'company_name' => 'Company']);
+        $job = Job::create(['company_profile_id' => $company->id, 'title' => 'Developer', 'slug' => 'duplicate-skills', 'description' => 'Description', 'required_skills' => ['Laravel', ' laravel ', 'React'], 'status' => 'published']);
         $profile = JobSeekerProfile::create(['user_id' => User::factory()->create(['role' => 'job_seeker'])->id, 'extracted_skills' => ['Laravel']]);
 
         $this->assertSame(50, app(MatchingService::class)->match($job, $profile)['score']);
