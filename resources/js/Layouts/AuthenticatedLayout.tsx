@@ -5,6 +5,7 @@ import ResponsiveNavLink from '@/Components/ResponsiveNavLink';
 import { Link, usePage } from '@inertiajs/react';
 import { PropsWithChildren, ReactNode, useState } from 'react';
 import { LanguageSwitcher } from '@/lib/language';
+import Footer from '@/Components/Footer';
 
 export default function Authenticated({
     header,
@@ -16,7 +17,7 @@ export default function Authenticated({
         useState(false);
 
     return (
-        <div className="madarat-shell min-h-screen">
+        <div className="madarat-shell flex min-h-screen flex-col">
             <nav className="border-b border-cyan-100/70 bg-white/90 backdrop-blur-xl">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     <div className="flex h-16 justify-between">
@@ -194,7 +195,8 @@ export default function Authenticated({
                 </header>
             )}
 
-            <main>{children}</main>
+            <main className="flex-1">{children}</main>
+            <Footer />
         </div>
     );
 }
