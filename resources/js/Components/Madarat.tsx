@@ -3,6 +3,7 @@ import { Link, router, useForm, usePage } from '@inertiajs/react';
 import { Bot, BookOpen, BriefcaseBusiness, Building2, CheckCircle2, Clock, Eye, FileText, Gauge, LoaderCircle, MessageCircle, Send, Sparkles, Target, UserRound, X, XCircle } from 'lucide-react';
 import axios from 'axios';
 import { LanguageSwitcher, useLanguage } from '@/lib/language';
+import Footer from '@/Components/Footer';
 
 export type Job = {
     id: number;
@@ -154,7 +155,7 @@ export function AppLayout({ children }: PropsWithChildren) {
     const user = props.auth?.user;
     const { t } = useLanguage();
     return (
-        <div className="madarat-shell min-h-screen bg-madarat-gray">
+        <div className="madarat-shell flex min-h-screen flex-col bg-madarat-gray">
             <header className="sticky top-0 z-30 border-b border-cyan-100/70 bg-white/90 backdrop-blur-xl">
                 <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
                     <MadaratLogo />
@@ -174,8 +175,9 @@ export function AppLayout({ children }: PropsWithChildren) {
                     </nav>
                 </div>
             </header>
-            <main className="relative mx-auto max-w-7xl px-4 py-8"><FlashMessage />{children}</main>
+            <main className="relative mx-auto w-full max-w-7xl flex-1 px-4 py-8"><FlashMessage />{children}</main>
             {user && <AssistantWidget />}
+            <Footer />
         </div>
     );
 }
