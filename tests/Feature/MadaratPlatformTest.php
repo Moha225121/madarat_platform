@@ -66,7 +66,7 @@ class MadaratPlatformTest extends TestCase
         $this->assertDatabaseHas('jobs', ['title' => 'مطور نظم', 'status' => 'pending_review']);
     }
 
-    public function test_verified_employer_jobs_are_published_immediately(): void
+    public function test_verified_employer_jobs_still_require_admin_approval(): void
     {
         $user = User::factory()->create(['role' => 'employer']);
         CompanyProfile::create([
@@ -82,7 +82,19 @@ class MadaratPlatformTest extends TestCase
             'status' => 'published',
         ])->assertRedirect();
 
-        $this->assertDatabaseHas('jobs', ['title' => 'مطور أول', 'status' => 'published']);
+        $this->assertDatabaseHas('jobs', ['title' => 'مطور أول', 'status' => 'pending_review']);
+    }
+
+    public function test_smart_matching_is_only_available_for_published_jobs(): void
+    {
+        $employer = User::factory()->create(['role' => 'employer']);
+        $company = CompanyProfile::create(['user_id' => $employer->id, 'company_name' => 'شركة']);
+        $job = Job::create(['company_profile_id' => $company->id, 'title' => 'وظيفة', 'slug' => 'pending-match', 'description' => 'وصف', 'status' => 'pending_review']);
+
+        $this->actingAs($employer)->get("/employer/jobs/{$job->id}/matches")->assertNotFound();
+
+        $job->update(['status' => 'published']);
+        $this->get("/employer/jobs/{$job->id}/matches")->assertOk();
     }
 
     public function test_employer_can_save_job_as_draft_regardless_of_verification(): void

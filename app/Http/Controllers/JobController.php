@@ -85,7 +85,7 @@ class JobController extends Controller
 
         $job = Job::create($data);
 
-        return redirect()->route('employer.jobs.matches', $job)->with('success', 'تم حفظ الوظيفة بنجاح.');
+        return redirect()->route('employer.dashboard')->with('success', 'تم إرسال الوظيفة لمراجعة الإدارة. ستتاح المطابقة الذكية بعد الموافقة والنشر.');
     }
 
     public function edit(Job $job, Request $request): Response
@@ -176,6 +176,6 @@ class JobController extends Controller
             return 'draft';
         }
 
-        return $company->isVerified() ? 'published' : 'pending_review';
+        return 'pending_review';
     }
 }

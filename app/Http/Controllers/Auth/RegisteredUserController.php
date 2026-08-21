@@ -42,7 +42,7 @@ class RegisteredUserController extends Controller
             'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
             'account_type' => 'nullable|in:job-seeker,employer,trainer,training-company',
             'role' => 'nullable|in:job_seeker,employer,training_provider',
-            'phone' => 'nullable|string|max:30',
+            'phone' => 'nullable|string|max:30|unique:'.User::class,
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
