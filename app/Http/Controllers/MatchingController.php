@@ -14,6 +14,7 @@ class MatchingController extends Controller
     public function show(Job $job, Request $request, MatchingService $matching): Response
     {
         abort_unless($job->companyProfile->user_id === $request->user()->id, 403);
+        abort_unless($job->status === 'published', 404);
         $job->load('applications.user.jobSeekerProfile', 'applications.interviewInvitation');
         $candidates = JobSeekerProfile::with('user')->get()->map(fn ($profile) => [
             'profile' => $profile,

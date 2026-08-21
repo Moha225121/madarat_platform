@@ -72,7 +72,7 @@ export default function Companies({ companies, stats, filters, filterOptions }: 
                                         <CompanyVerificationBadge status={company.verification_status} />
                                         {company.verification_status !== 'verified' && <Badge tone="gray">{statusLabel[company.verification_status] || 'غير محددة'}</Badge>}
                                     </div>
-                                    <p className="mt-1 text-sm text-slate-500">{company.user?.name || 'لا يوجد صاحب حساب'} · {company.user?.email || 'لا يوجد بريد'}</p>
+                                    <p className="mt-1 text-sm text-slate-500">{company.user?.name || 'لا يوجد صاحب حساب'} · {company.user?.email || 'لا يوجد بريد'} · {company.user?.phone || 'لا يوجد هاتف'}</p>
                                     <p className="mt-1 text-sm text-slate-600">{company.industry || 'قطاع غير محدد'} · {company.headquarters || 'مقر غير محدد'}</p>
                                 </div>
                                 <div className="flex flex-wrap items-center gap-2">
