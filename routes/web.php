@@ -97,8 +97,10 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/admin/applications/{application}', [ApplicationController::class, 'adminShow'])->name('admin.applications.show');
     Route::get('/admin/companies', [AdminDirectoryController::class, 'companies'])->name('admin.companies.index');
     Route::get('/admin/companies/{company}/details', [AdminDirectoryController::class, 'company'])->name('admin.companies.show');
+    Route::delete('/admin/companies/{company}', [AdminDirectoryController::class, 'destroyCompany'])->name('admin.companies.destroy');
     Route::get('/admin/trainers', [AdminDirectoryController::class, 'trainers'])->name('admin.trainers.index');
     Route::get('/admin/trainers/{provider}', [AdminDirectoryController::class, 'trainer'])->name('admin.trainers.show');
+    Route::delete('/admin/trainers/{provider}', [AdminDirectoryController::class, 'destroyTrainer'])->name('admin.trainers.destroy');
     Route::get('/admin/jobs/pending', AdminDashboardController::class)->name('admin.jobs.pending');
     Route::get('/admin/jobs/{job}/review', [JobController::class, 'review'])->name('admin.jobs.review');
     Route::get('/admin/companies/verification', AdminDashboardController::class)->name('admin.companies.verification');

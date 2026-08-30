@@ -7,13 +7,18 @@ use App\Models\CourseEnrollment;
 use App\Models\CourseRecommendation;
 use App\Models\CourseUserFeedback;
 use App\Models\JobSeekerProfile;
+use App\Models\TrainingCourse;
 use App\Models\TrainingProviderProfile;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
+use RuntimeException;
+use Throwable;
 
 class AdminDirectoryController extends Controller
 {
@@ -159,6 +164,74 @@ class AdminDirectoryController extends Controller
         ]);
     }
 
+    public function destroyCompany(Request $request, CompanyProfile $company): RedirectResponse
+    {
+        $employer = $company->user;
+
+        abort_unless(
+            $employer !== null
+                && $employer->role === 'employer'
+                && $company->user_id === $employer->id
+                && ! $employer->is($request->user()),
+            404,
+        );
+
+        $filePaths = $this->safePublicFilePaths(
+            [$company->logo_path],
+            ['company-logos'],
+        );
+        $filePaths = collect($filePaths)
+            ->reject(fn (string $path): bool => $this->publicFilePathIsReferencedElsewhere(
+                $path,
+                companyId: $company->id,
+            ))
+            ->values()
+            ->all();
+
+        try {
+            DB::transaction(function () use ($company, $employer): void {
+                $jobIds = $company->jobs()->pluck('id')->all();
+
+                if ($jobIds !== []) {
+                    $recommendationIds = CourseRecommendation::query()
+                        ->whereNotNull('target_job_ids')
+                        ->get(['id', 'target_job_ids'])
+                        ->filter(fn (CourseRecommendation $recommendation): bool => collect($recommendation->target_job_ids ?? [])
+                            ->intersect($jobIds)
+                            ->isNotEmpty())
+                        ->pluck('id');
+
+                    CourseRecommendation::query()->whereIn('id', $recommendationIds->all())->delete();
+                }
+
+                $this->deleteUserAccount($employer);
+            });
+        } catch (Throwable $exception) {
+            report($exception);
+
+            return redirect()->route('admin.companies.index')->with(
+                'error',
+                'تعذر حذف حساب صاحب العمل. يرجى المحاولة مرة أخرى.',
+            );
+        }
+
+        try {
+            $this->deletePublicFiles($filePaths);
+        } catch (Throwable $exception) {
+            report($exception);
+
+            return redirect()->route('admin.companies.index')->with(
+                'error',
+                'تم حذف حساب صاحب العمل، لكن تعذر حذف بعض الملفات المرتبطة به. يرجى مراجعة السجلات.',
+            );
+        }
+
+        return redirect()->route('admin.companies.index')->with(
+            'success',
+            'تم حذف حساب صاحب العمل وجميع بياناته المرتبطة بنجاح.',
+        );
+    }
+
     public function trainers(Request $request): Response
     {
         $filters = $request->only(['q', 'verification_status', 'provider_type', 'city']);
@@ -224,5 +297,137 @@ class AdminDirectoryController extends Controller
                 'enrollments' => CourseEnrollment::query()->whereIn('course_id', $provider->courses()->pluck('id'))->count(),
             ],
         ]);
+    }
+
+    public function destroyTrainer(Request $request, TrainingProviderProfile $provider): RedirectResponse
+    {
+        $trainingProvider = $provider->user;
+
+        abort_unless(
+            $trainingProvider !== null
+                && $trainingProvider->role === 'training_provider'
+                && $provider->user_id === $trainingProvider->id
+                && ! $trainingProvider->is($request->user()),
+            404,
+        );
+
+        $providerFilePaths = $this->safePublicFilePaths(
+            [
+                $provider->logo_path,
+                $provider->profile_image_path,
+            ],
+            ['training-providers'],
+        );
+        $courseFilePaths = $this->safePublicFilePaths(
+            $provider->courses()
+                ->whereNotNull('cover_image_path')
+                ->pluck('cover_image_path')
+                ->all(),
+            ['training-courses'],
+        );
+        $filePaths = collect([...$providerFilePaths, ...$courseFilePaths])
+            ->unique()
+            ->reject(fn (string $path): bool => $this->publicFilePathIsReferencedElsewhere(
+                $path,
+                providerId: $provider->id,
+            ))
+            ->values()
+            ->all();
+
+        try {
+            DB::transaction(fn () => $this->deleteUserAccount($trainingProvider));
+        } catch (Throwable $exception) {
+            report($exception);
+
+            return redirect()->route('admin.trainers.index')->with(
+                'error',
+                'تعذر حذف حساب مزود التدريب. يرجى المحاولة مرة أخرى.',
+            );
+        }
+
+        try {
+            $this->deletePublicFiles($filePaths);
+        } catch (Throwable $exception) {
+            report($exception);
+
+            return redirect()->route('admin.trainers.index')->with(
+                'error',
+                'تم حذف حساب مزود التدريب، لكن تعذر حذف بعض الملفات المرتبطة به. يرجى مراجعة السجلات.',
+            );
+        }
+
+        return redirect()->route('admin.trainers.index')->with(
+            'success',
+            'تم حذف حساب مزود التدريب وجميع بياناته المرتبطة بنجاح.',
+        );
+    }
+
+    /**
+     * Keep deletion scoped to files created by this application on the public disk.
+     *
+     * @param  array<int, mixed>  $paths
+     * @param  array<int, string>  $allowedDirectories
+     * @return array<int, string>
+     */
+    private function safePublicFilePaths(array $paths, array $allowedDirectories): array
+    {
+        return collect($paths)
+            ->filter(fn (mixed $path): bool => is_string($path) && filled($path))
+            ->filter(function (string $path) use ($allowedDirectories): bool {
+                if ($path !== trim($path) || str_contains($path, "\0") || str_contains($path, '\\')) {
+                    return false;
+                }
+
+                $segments = explode('/', $path);
+
+                return count($segments) > 1
+                    && in_array($segments[0], $allowedDirectories, true)
+                    && collect($segments)->every(fn (string $segment): bool => $segment !== '' && $segment !== '.' && $segment !== '..');
+            })
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    private function publicFilePathIsReferencedElsewhere(
+        string $path,
+        ?int $companyId = null,
+        ?int $providerId = null,
+    ): bool {
+        $companies = CompanyProfile::query()->where('logo_path', $path);
+        if ($companyId !== null) {
+            $companies->where('id', '!=', $companyId);
+        }
+
+        $providers = TrainingProviderProfile::query()
+            ->where(fn (Builder $query) => $query
+                ->where('logo_path', $path)
+                ->orWhere('profile_image_path', $path));
+        if ($providerId !== null) {
+            $providers->where('id', '!=', $providerId);
+        }
+
+        $courses = TrainingCourse::query()->where('cover_image_path', $path);
+        if ($providerId !== null) {
+            $courses->where('training_provider_id', '!=', $providerId);
+        }
+
+        return $companies->exists() || $providers->exists() || $courses->exists();
+    }
+
+    /** @param array<int, string> $paths */
+    private function deletePublicFiles(array $paths): void
+    {
+        if ($paths !== [] && ! Storage::disk('public')->delete($paths)) {
+            throw new RuntimeException('One or more account-owned files could not be deleted.');
+        }
+    }
+
+    private function deleteUserAccount(User $user): void
+    {
+        DB::table('assistant_messages')->where('user_id', $user->id)->delete();
+        DB::table('sessions')->where('user_id', $user->id)->delete();
+        DB::table('password_reset_tokens')->where('email', $user->email)->delete();
+        $user->delete();
     }
 }

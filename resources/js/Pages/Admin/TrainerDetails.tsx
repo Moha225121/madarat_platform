@@ -1,13 +1,40 @@
-import { Link } from '@inertiajs/react';
+import { Link, router } from '@inertiajs/react';
 import { Badge, Card, DashboardLayout, StatCard, icons } from '@/Components/Madarat';
 import { arabicLabel } from '@/lib/arabicLabels';
+import { useState } from 'react';
 
 export default function TrainerDetails({ provider, courses, stats }: any) {
+    const [deleting, setDeleting] = useState(false);
+
+    const deleteProvider = () => {
+        if (deleting) {
+            return;
+        }
+
+        if (!confirm(`هل أنت متأكد من حذف حساب مزود التدريب "${provider.display_name}"؟ سيُحذف الحساب وجميع الدورات والتسجيلات والبيانات المرتبطة به نهائيًا، ولا يمكن التراجع عن هذا الإجراء.`)) {
+            return;
+        }
+
+        setDeleting(true);
+        router.delete(route('admin.trainers.destroy', { provider: provider.id }), {
+            preserveScroll: true,
+            onFinish: () => setDeleting(false),
+        });
+    };
+
     return (
         <DashboardLayout title="تفاصيل مزود التدريب">
             <div className="mb-4 flex flex-wrap items-center gap-3">
                 <Link href="/admin/trainers" className="text-sm font-black text-madarat-blue hover:underline">العودة إلى قائمة المزودين</Link>
                 <Link href={`/admin/training/providers/${provider.id}`} className="rounded-lg bg-madarat-blue px-3 py-1.5 text-xs font-black text-white hover:bg-madarat-navy">فتح صفحة مراجعة الحساب</Link>
+                <button
+                    type="button"
+                    onClick={deleteProvider}
+                    disabled={deleting}
+                    className="rounded-lg bg-red-600 px-3 py-1.5 text-xs font-black text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                    {deleting ? 'جاري الحذف...' : 'حذف حساب مزود التدريب'}
+                </button>
             </div>
 
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
