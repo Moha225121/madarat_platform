@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\AdminDirectoryController;
+use App\Http\Controllers\AdminHomepageAdvertisementController;
 use App\Http\Controllers\AdminTrainingController;
 use App\Http\Controllers\ApplicationController;
 use App\Http\Controllers\AssistantController;
@@ -90,6 +91,9 @@ Route::middleware(['auth', 'role:job_seeker'])->group(function () {
 
 Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/admin/dashboard', AdminDashboardController::class)->name('admin.dashboard');
+    Route::get('/admin/advertisements', [AdminHomepageAdvertisementController::class, 'index'])->name('admin.advertisements.index');
+    Route::post('/admin/advertisements', [AdminHomepageAdvertisementController::class, 'store'])->name('admin.advertisements.store');
+    Route::delete('/admin/advertisements/{advertisement}', [AdminHomepageAdvertisementController::class, 'destroy'])->name('admin.advertisements.destroy');
     Route::get('/admin/job-seekers', [AdminDirectoryController::class, 'seekers'])->name('admin.seekers.index');
     Route::get('/admin/job-seekers/{seeker}', [AdminDirectoryController::class, 'seeker'])->name('admin.seekers.show');
     Route::delete('/admin/job-seekers/{seeker}', [AdminDirectoryController::class, 'destroySeeker'])->name('admin.seekers.destroy');
