@@ -14,8 +14,8 @@ export type Job = {
     job_type?: string;
     contract_type?: string;
     experience_level?: string;
-    salary_min?: number;
-    salary_max?: number;
+    salary_min?: number | null;
+    salary_max?: number | null;
     status?: string;
     required_skills?: string[];
     responsibilities?: string[];
