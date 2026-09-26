@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use Database\Factories\JobSeekerProfileFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class JobSeekerProfile extends Model
 {
-    /** @use HasFactory<\Database\Factories\JobSeekerProfileFactory> */
+    /** @use HasFactory<JobSeekerProfileFactory> */
     use HasFactory;
 
     protected $fillable = [
@@ -19,6 +20,11 @@ class JobSeekerProfile extends Model
         'bio',
         'cv_path',
         'cv_status',
+        'cv_analysis_attempt_id',
+        'cv_analysis_error_code',
+        'cv_analysis_error_message',
+        'cv_analysis_started_at',
+        'cv_analysis_completed_at',
         'profile_score',
         'extracted_skills',
         'missing_skills',
@@ -33,6 +39,8 @@ class JobSeekerProfile extends Model
             'extracted_skills' => 'array',
             'missing_skills' => 'array',
             'ai_recommendations' => 'array',
+            'cv_analysis_started_at' => 'datetime',
+            'cv_analysis_completed_at' => 'datetime',
         ];
     }
 

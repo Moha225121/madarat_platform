@@ -67,7 +67,7 @@ Madarat (مدارات) is an Arabic-first recruitment platform that connects job
 - PHP 8.3 or newer
 - Composer 2
 - Node.js 20 or newer and npm
-- PHP extensions required by Laravel, plus `zip` for DOCX CV extraction
+- PHP extensions required by Laravel
 - An OpenAI API key if CV analysis or live AI responses are needed
 
 ## Quick start
@@ -135,13 +135,21 @@ DB_CONNECTION=sqlite
 
 FILESYSTEM_DISK=local
 QUEUE_CONNECTION=database
+DB_QUEUE_TABLE=queue_jobs
+DB_QUEUE_RETRY_AFTER=180
+QUEUE_FAILED_DRIVER=database-uuids
 SESSION_DRIVER=database
 CACHE_STORE=database
 
 OPENAI_API_KEY=
 OPENAI_MODEL=gpt-5.2
 OPENAI_BASE_URL=https://api.openai.com/v1
+OPENAI_CONNECT_TIMEOUT=10
+OPENAI_TIMEOUT=45
+OPENAI_FILE_TIMEOUT=90
 ```
+
+`queue_jobs` is intentionally separate from the platform's `jobs` table, which stores job vacancies. The database queue reserves a job for 180 seconds, safely longer than the CV-analysis worker timeout of 120 seconds.
 
 After changing environment values in a cached environment, run:
 
@@ -187,11 +195,11 @@ Only job seekers can apply, and only to published jobs. A database unique constr
 
 ### CV analysis
 
-- Accepts PDF, DOC, and DOCX files up to 5 MB.
-- PDFs are sent to the OpenAI Responses API as file input.
-- DOCX text is extracted locally through `ZipArchive`; other accepted non-PDF files are read as text.
-- Requires `OPENAI_API_KEY`; failure marks the CV analysis as `failed` while preserving the uploaded path.
-- Stores normalized analysis results on the job-seeker profile.
+- Accepts PDF, DOC, and DOCX files up to 15 MB.
+- Sends every supported file type to the OpenAI Responses API as an `input_file` with an explicit MIME type; local DOCX extraction and PHP's `zip` extension are not required.
+- Runs through the database queue, moving from `processing` to `analyzed` only after a complete structured result is validated and saved.
+- Requires `OPENAI_API_KEY`; final failure marks the analysis as `failed`, stores only a safe user-facing failure category, and preserves the uploaded file for retry or investigation.
+- Stores the score, skills, education and experience summaries, strengths, and recommendations on the job-seeker profile while preventing stale jobs from overwriting a newer upload.
 
 ### Job-description generation
 
@@ -368,8 +376,9 @@ Also confirm the web-server user can read `storage/app/public`.
 ### CV analysis fails
 
 - Confirm `OPENAI_API_KEY` is present and then run `php artisan config:clear`.
-- Confirm the file is PDF, DOC, or DOCX and no larger than 5 MB.
-- Confirm PHP's `zip` extension is enabled for DOCX extraction.
+- Confirm the file is PDF, DOC, or DOCX and no larger than 15 MB.
+- Confirm the queue migrations have run and a queue worker is active (`php artisan queue:work --tries=3 --timeout=120 --backoff=10`).
+- Confirm `DB_QUEUE_TABLE=queue_jobs` and `DB_QUEUE_RETRY_AFTER` remains greater than the worker timeout.
 - Inspect `storage/logs/laravel.log` or run `php artisan pail`.
 
 ### Database or session table errors

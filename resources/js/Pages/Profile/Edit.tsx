@@ -8,6 +8,7 @@ import UpdateProfileInformationForm from './Partials/UpdateProfileInformationFor
 export default function Edit({
     mustVerifyEmail,
     status,
+    auth,
 }: PageProps<{ mustVerifyEmail: boolean; status?: string }>) {
     return (
         <AuthenticatedLayout
@@ -33,9 +34,11 @@ export default function Edit({
                         <UpdatePasswordForm className="max-w-xl" />
                     </div>
 
-                    <div className="bg-white p-4 shadow sm:rounded-lg sm:p-8">
-                        <DeleteUserForm className="max-w-xl" />
-                    </div>
+                    {!['employer', 'training_provider'].includes(auth.user.role) && (
+                        <div className="bg-white p-4 shadow sm:rounded-lg sm:p-8">
+                            <DeleteUserForm className="max-w-xl" />
+                        </div>
+                    )}
                 </div>
             </div>
         </AuthenticatedLayout>

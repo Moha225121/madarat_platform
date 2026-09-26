@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\AdminDirectoryController;
+use App\Http\Controllers\AdminHomepageAdvertisementController;
 use App\Http\Controllers\AdminTrainingController;
 use App\Http\Controllers\ApplicationController;
 use App\Http\Controllers\AssistantController;
@@ -90,6 +91,9 @@ Route::middleware(['auth', 'role:job_seeker'])->group(function () {
 
 Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/admin/dashboard', AdminDashboardController::class)->name('admin.dashboard');
+    Route::get('/admin/advertisements', [AdminHomepageAdvertisementController::class, 'index'])->name('admin.advertisements.index');
+    Route::post('/admin/advertisements', [AdminHomepageAdvertisementController::class, 'store'])->name('admin.advertisements.store');
+    Route::delete('/admin/advertisements/{advertisement}', [AdminHomepageAdvertisementController::class, 'destroy'])->name('admin.advertisements.destroy');
     Route::get('/admin/job-seekers', [AdminDirectoryController::class, 'seekers'])->name('admin.seekers.index');
     Route::get('/admin/job-seekers/{seeker}', [AdminDirectoryController::class, 'seeker'])->name('admin.seekers.show');
     Route::delete('/admin/job-seekers/{seeker}', [AdminDirectoryController::class, 'destroySeeker'])->name('admin.seekers.destroy');
@@ -97,8 +101,10 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/admin/applications/{application}', [ApplicationController::class, 'adminShow'])->name('admin.applications.show');
     Route::get('/admin/companies', [AdminDirectoryController::class, 'companies'])->name('admin.companies.index');
     Route::get('/admin/companies/{company}/details', [AdminDirectoryController::class, 'company'])->name('admin.companies.show');
+    Route::delete('/admin/companies/{company}', [AdminDirectoryController::class, 'destroyCompany'])->name('admin.companies.destroy');
     Route::get('/admin/trainers', [AdminDirectoryController::class, 'trainers'])->name('admin.trainers.index');
     Route::get('/admin/trainers/{provider}', [AdminDirectoryController::class, 'trainer'])->name('admin.trainers.show');
+    Route::delete('/admin/trainers/{provider}', [AdminDirectoryController::class, 'destroyTrainer'])->name('admin.trainers.destroy');
     Route::get('/admin/jobs/pending', AdminDashboardController::class)->name('admin.jobs.pending');
     Route::get('/admin/jobs/{job}/review', [JobController::class, 'review'])->name('admin.jobs.review');
     Route::get('/admin/companies/verification', AdminDashboardController::class)->name('admin.companies.verification');

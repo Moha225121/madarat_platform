@@ -1,8 +1,14 @@
 import { Link } from '@inertiajs/react';
 import { ArrowUpRight, BrainCircuit, Building2, FileSearch, FileText, GraduationCap, LayoutTemplate, MessageCircle, Send, Sparkles, WandSparkles } from 'lucide-react';
 import { AppLayout, AssistantRobot, Card, Job, JobCard, MadaratLogo, StatCard, icons } from '@/Components/Madarat';
+import HomepageAdvertisementCarousel, { HomepageAdvertisement } from '@/Components/HomepageAdvertisementCarousel';
 
-export default function Welcome({ featuredJobs = [] }: { featuredJobs: Job[] }) {
+type WelcomeProps = {
+    featuredJobs?: Job[];
+    advertisements?: HomepageAdvertisement[];
+};
+
+export default function Welcome({ featuredJobs = [], advertisements = [] }: WelcomeProps) {
     const features = [
         ['تحليل السيرة الذاتية', FileSearch],
         ['إنشاء السيرة الذاتية', FileText],
@@ -44,36 +50,7 @@ export default function Welcome({ featuredJobs = [] }: { featuredJobs: Job[] }) 
                 </div>
 
                 <div className="relative z-10 mt-10 min-h-[390px] lg:mt-0">
-                    <div className="absolute left-6 top-0 h-72 w-52 rotate-3 rounded-lg bg-gradient-to-b from-madarat-cyan to-madarat-blue p-4 text-white shadow-2xl shadow-madarat-blue/20">
-                        <div className="absolute inset-x-0 bottom-0 h-40 overflow-hidden rounded-b-lg">
-                            <div className="absolute -left-8 top-4 h-32 w-32 rounded-full border-[18px] border-white/12" />
-                            <div className="absolute right-4 top-10 h-28 w-28 rounded-full border-[16px] border-white/12" />
-                            <div className="absolute left-12 top-24 h-20 w-20 rounded-full border-[12px] border-white/12" />
-                        </div>
-                        <p className="text-left text-sm font-black">دفتر مدارات</p>
-                        <div className="relative mt-16 rounded-lg bg-white p-4 text-madarat-navy shadow-lg">
-                            <MadaratLogo />
-                            <div className="mt-4 h-1.5 rounded-full bg-madarat-cyan" />
-                            <p className="mt-3 text-sm font-black">حيث تتحول الأفكار إلى واقع</p>
-                        </div>
-                    </div>
-                    <div className="absolute right-0 top-12 w-72 rounded-lg bg-white p-5 shadow-2xl shadow-slate-900/10 ring-1 ring-cyan-100">
-                        <div className="mb-5 h-0.5 bg-madarat-cyan" />
-                        <div className="mx-auto grid h-44 w-44 place-items-center rounded-full bg-madarat-sky">
-                            <AssistantRobot />
-                        </div>
-                        <div className="mt-6 rounded-lg bg-gradient-to-l from-madarat-blue to-madarat-cyan px-4 py-3 text-sm font-black text-white">
-                            مساعدك الذكي يظهر بعد تسجيل الدخول
-                        </div>
-                    </div>
-                    <div className="absolute bottom-3 right-10 w-48 -rotate-6 rounded-lg bg-white p-4 shadow-xl shadow-slate-900/10 ring-1 ring-cyan-100">
-                        <MadaratLogo />
-                        <div className="mt-5 space-y-2 text-xs font-bold text-madarat-blue">
-                            <p>تحليل السيرة</p>
-                            <p>اقتراح الوظائف</p>
-                            <p>تجهيز المقابلات</p>
-                        </div>
-                    </div>
+                    <HomepageAdvertisementCarousel advertisements={advertisements} />
                 </div>
             </section>
 

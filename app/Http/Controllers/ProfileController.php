@@ -45,6 +45,11 @@ class ProfileController extends Controller
      */
     public function destroy(Request $request): RedirectResponse
     {
+        abort_if(
+            in_array($request->user()->role, ['employer', 'training_provider'], true),
+            403,
+        );
+
         $request->validate([
             'password' => ['required', 'current_password'],
         ]);

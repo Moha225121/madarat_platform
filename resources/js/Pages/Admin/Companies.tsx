@@ -15,6 +15,7 @@ export default function Companies({ companies, stats, filters, filterOptions }: 
         verification_status: filters.verification_status || '',
         industry: filters.industry || '',
     });
+    const [deletingId, setDeletingId] = useState<number | null>(null);
 
     const submit = (event: FormEvent) => {
         event.preventDefault();
@@ -25,6 +26,22 @@ export default function Companies({ companies, stats, filters, filterOptions }: 
         const empty = { q: '', verification_status: '', industry: '' };
         setForm(empty);
         router.get('/admin/companies', empty, { preserveState: true, replace: true });
+    };
+
+    const deleteCompany = (company: any) => {
+        if (deletingId === company.id) {
+            return;
+        }
+
+        if (!confirm(`هل أنت متأكد من حذف حساب صاحب العمل "${company.company_name}"؟ سيُحذف الحساب وجميع الوظائف والطلبات والبيانات المرتبطة به نهائيًا، ولا يمكن التراجع عن هذا الإجراء.`)) {
+            return;
+        }
+
+        setDeletingId(company.id);
+        router.delete(route('admin.companies.destroy', { company: company.id }), {
+            preserveScroll: true,
+            onFinish: () => setDeletingId(null),
+        });
     };
 
     return (
@@ -80,6 +97,14 @@ export default function Companies({ companies, stats, filters, filterOptions }: 
                                     <span className="rounded-full bg-white px-3 py-1 text-xs font-bold text-slate-600 ring-1 ring-slate-200">منشورة: {company.published_jobs_count}</span>
                                     <span className="rounded-full bg-white px-3 py-1 text-xs font-bold text-slate-600 ring-1 ring-slate-200">قيد المراجعة: {company.pending_jobs_count}</span>
                                     <Link href={`/admin/companies/${company.id}/details`} className="rounded-lg bg-madarat-blue px-4 py-2 text-sm font-black text-white hover:bg-madarat-navy">عرض التفاصيل</Link>
+                                    <button
+                                        type="button"
+                                        onClick={() => deleteCompany(company)}
+                                        disabled={deletingId === company.id}
+                                        className="rounded-lg bg-red-600 px-4 py-2 text-sm font-black text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
+                                    >
+                                        {deletingId === company.id ? 'جاري الحذف...' : 'حذف'}
+                                    </button>
                                 </div>
                             </div>
                         </div>

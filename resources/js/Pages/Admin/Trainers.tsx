@@ -10,6 +10,7 @@ export default function Trainers({ trainers, stats, filters, filterOptions }: an
         provider_type: filters.provider_type || '',
         city: filters.city || '',
     });
+    const [deletingId, setDeletingId] = useState<number | null>(null);
 
     const submit = (event: FormEvent) => {
         event.preventDefault();
@@ -20,6 +21,22 @@ export default function Trainers({ trainers, stats, filters, filterOptions }: an
         const empty = { q: '', verification_status: '', provider_type: '', city: '' };
         setForm(empty);
         router.get('/admin/trainers', empty, { preserveState: true, replace: true });
+    };
+
+    const deleteProvider = (provider: any) => {
+        if (deletingId === provider.id) {
+            return;
+        }
+
+        if (!confirm(`هل أنت متأكد من حذف حساب مزود التدريب "${provider.display_name}"؟ سيُحذف الحساب وجميع الدورات والتسجيلات والبيانات المرتبطة به نهائيًا، ولا يمكن التراجع عن هذا الإجراء.`)) {
+            return;
+        }
+
+        setDeletingId(provider.id);
+        router.delete(route('admin.trainers.destroy', { provider: provider.id }), {
+            preserveScroll: true,
+            onFinish: () => setDeletingId(null),
+        });
     };
 
     return (
@@ -76,6 +93,14 @@ export default function Trainers({ trainers, stats, filters, filterOptions }: an
                                     <span className="rounded-full bg-white px-3 py-1 text-xs font-bold text-slate-600 ring-1 ring-slate-200">منشورة: {provider.published_courses_count}</span>
                                     <span className="rounded-full bg-white px-3 py-1 text-xs font-bold text-slate-600 ring-1 ring-slate-200">قيد المراجعة: {provider.pending_courses_count}</span>
                                     <Link href={`/admin/trainers/${provider.id}`} className="rounded-lg bg-madarat-blue px-4 py-2 text-sm font-black text-white hover:bg-madarat-navy">عرض التفاصيل</Link>
+                                    <button
+                                        type="button"
+                                        onClick={() => deleteProvider(provider)}
+                                        disabled={deletingId === provider.id}
+                                        className="rounded-lg bg-red-600 px-4 py-2 text-sm font-black text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
+                                    >
+                                        {deletingId === provider.id ? 'جاري الحذف...' : 'حذف'}
+                                    </button>
                                 </div>
                             </div>
                         </div>

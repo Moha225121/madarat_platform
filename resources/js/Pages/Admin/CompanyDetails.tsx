@@ -1,5 +1,6 @@
-import { Link } from '@inertiajs/react';
+import { Link, router } from '@inertiajs/react';
 import { Badge, Card, CompanyVerificationBadge, DashboardLayout, StatCard, icons } from '@/Components/Madarat';
+import { useState } from 'react';
 
 const statusLabel: Record<string, string> = {
     verified: 'موثقة',
@@ -14,11 +15,37 @@ const statusLabel: Record<string, string> = {
 };
 
 export default function CompanyDetails({ company, jobs, stats }: any) {
+    const [deleting, setDeleting] = useState(false);
+
+    const deleteCompany = () => {
+        if (deleting) {
+            return;
+        }
+
+        if (!confirm(`هل أنت متأكد من حذف حساب صاحب العمل "${company.company_name}"؟ سيُحذف الحساب وجميع الوظائف والطلبات والبيانات المرتبطة به نهائيًا، ولا يمكن التراجع عن هذا الإجراء.`)) {
+            return;
+        }
+
+        setDeleting(true);
+        router.delete(route('admin.companies.destroy', { company: company.id }), {
+            preserveScroll: true,
+            onFinish: () => setDeleting(false),
+        });
+    };
+
     return (
         <DashboardLayout title="تفاصيل الشركة">
             <div className="mb-4 flex flex-wrap items-center gap-3">
                 <Link href="/admin/companies" className="text-sm font-black text-madarat-blue hover:underline">العودة إلى قائمة الشركات</Link>
                 {company.verification_status === 'pending' && <Link href={`/admin/companies/${company.id}/verification`} className="rounded-lg bg-madarat-blue px-3 py-1.5 text-xs font-black text-white hover:bg-madarat-navy">فتح صفحة التوثيق</Link>}
+                <button
+                    type="button"
+                    onClick={deleteCompany}
+                    disabled={deleting}
+                    className="rounded-lg bg-red-600 px-3 py-1.5 text-xs font-black text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                    {deleting ? 'جاري الحذف...' : 'حذف حساب صاحب العمل'}
+                </button>
             </div>
 
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
