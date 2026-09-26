@@ -30,7 +30,9 @@ return [
 
     'openai' => [
         'key' => env('OPENAI_API_KEY'),
-        'model' => env('OPENAI_MODEL', 'gpt-5.2'),
+        // Keep the default economical; override per environment when needed.
+        'model' => env('OPENAI_MODEL', 'gpt-5-mini'),
+        'max_output_tokens' => (int) env('OPENAI_MAX_OUTPUT_TOKENS', 800),
         'base_url' => env('OPENAI_BASE_URL', 'https://api.openai.com/v1'),
         'connect_timeout' => (int) env('OPENAI_CONNECT_TIMEOUT', 10),
         'timeout' => (int) env('OPENAI_TIMEOUT', 45),
