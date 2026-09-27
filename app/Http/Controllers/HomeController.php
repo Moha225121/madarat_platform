@@ -19,7 +19,7 @@ class HomeController extends Controller
             ->filter(fn (HomepageAdvertisement $advertisement): bool => HomepageAdvertisement::isManagedImagePath($advertisement->image_path))
             ->map(fn (HomepageAdvertisement $advertisement): array => [
                 'id' => $advertisement->id,
-                'image_url' => $disk->url($advertisement->image_path),
+                'image_url' => asset('storage/'.ltrim($advertisement->image_path, '/')),
                 'alt_text' => $advertisement->alt_text,
             ])
             ->values();

@@ -33,7 +33,7 @@ class AdminHomepageAdvertisementController extends Controller
             ->map(fn (HomepageAdvertisement $advertisement): array => [
                 'id' => $advertisement->id,
                 'image_url' => HomepageAdvertisement::isManagedImagePath($advertisement->image_path)
-                    ? $disk->url($advertisement->image_path)
+                    ? asset('storage/'.ltrim($advertisement->image_path, '/'))
                     : null,
                 'alt_text' => $advertisement->alt_text,
                 'created_at' => $advertisement->created_at?->toISOString(),

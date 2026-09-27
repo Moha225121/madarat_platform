@@ -131,8 +131,10 @@ class OpenAiClient
             $payload['text'] = ['format' => $options['text_format']];
         }
 
-        if (isset($options['max_output_tokens'])) {
-            $payload['max_output_tokens'] = max(1, (int) $options['max_output_tokens']);
+        $maxOutputTokens = $options['max_output_tokens'] ?? config('services.openai.max_output_tokens');
+
+        if ($maxOutputTokens !== null && $maxOutputTokens !== '') {
+            $payload['max_output_tokens'] = max(1, (int) $maxOutputTokens);
         }
 
         try {

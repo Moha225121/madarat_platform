@@ -18,6 +18,7 @@ export default function Show({ course, feedback, canRegister, enrollment, remain
     return <DashboardLayout title={course.title}>
         <div className="grid gap-5 lg:grid-cols-[1fr_320px]">
             <Card>
+                {course.cover_image_url && <img src={course.cover_image_url} alt={course.title} className="mb-5 h-56 w-full rounded-xl object-cover" />}
                 <div className="flex flex-wrap gap-2">
                     <Badge tone={course.provider.verification_status === 'verified' ? 'green' : 'cyan'}>{course.provider.display_name}</Badge>
                     <Badge tone="cyan">{arabicLabel('difficulty', course.difficulty_level)}</Badge>

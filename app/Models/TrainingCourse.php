@@ -11,6 +11,15 @@ class TrainingCourse extends Model
 {
     use HasFactory;
 
+    protected $appends = ['cover_image_url'];
+
+    public function getCoverImageUrlAttribute(): ?string
+    {
+        return filled($this->cover_image_path)
+            ? asset('storage/'.ltrim($this->cover_image_path, '/'))
+            : null;
+    }
+
     protected $fillable = ['training_provider_id', 'title', 'slug', 'short_description', 'description', 'learning_outcomes', 'skills_taught', 'target_audience', 'prerequisites', 'difficulty_level', 'delivery_method', 'city', 'location', 'is_remote', 'duration_value', 'duration_unit', 'start_date', 'end_date', 'registration_deadline', 'price', 'currency', 'capacity', 'contact_email', 'contact_phone', 'registration_url', 'cover_image_path', 'certificate_available', 'status', 'submitted_at', 'published_at', 'reviewed_at', 'reviewed_by', 'rejection_reason', 'audience_analysis', 'analysis_model', 'analysis_content_hash', 'analyzed_at'];
 
     protected function casts(): array

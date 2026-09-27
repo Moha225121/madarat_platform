@@ -47,7 +47,7 @@ export default function CourseForm({ course }: any) {
         form.setData('submission_action', action);
         form.transform((data: any) => ({ ...data, submission_action: action }));
         course
-            ? form.put(`/training/courses/${course.id}`)
+            ? form.post(`/training/courses/${course.id}?_method=put`, { forceFormData: true })
             : form.post('/training/courses', { forceFormData: true });
     };
 
