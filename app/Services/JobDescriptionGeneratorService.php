@@ -7,13 +7,13 @@ use Throwable;
 
 class JobDescriptionGeneratorService
 {
-    public function __construct(private OpenAiClient $openAi) {}
+    public function __construct(private OpenAiClient $openAi, private AiUsagePolicy $policy) {}
 
     public function generate(array $data): array
     {
-        if ($this->openAi->isConfigured()) {
+        if ($this->openAi->isConfigured() && $this->policy->enabled()) {
             try {
-                return $this->generateWithOpenAi($data);
+                return $this->policy->remember('job-description', ['data' => $data, 'model' => config('services.openai.model')], fn () => $this->generateWithOpenAi($data));
             } catch (Throwable) {
                 //
             }

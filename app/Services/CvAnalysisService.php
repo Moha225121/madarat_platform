@@ -29,7 +29,7 @@ class CvAnalysisService
         'recommendations',
     ];
 
-    public function __construct(private OpenAiClient $openAi) {}
+    public function __construct(private OpenAiClient $openAi, private AiUsagePolicy $policy) {}
 
     /**
      * @return array{
@@ -44,7 +44,7 @@ class CvAnalysisService
      */
     public function analyze(UploadedFile $file, JobSeekerProfile $profile): array
     {
-        if (! $this->openAi->isConfigured()) {
+        if (! $this->openAi->isConfigured() || ! $this->policy->enabled()) {
             throw OpenAiException::missingConfiguration();
         }
 
@@ -63,6 +63,22 @@ class CvAnalysisService
         if ($size === false || $size < 1 || $size > self::MAX_FILE_BYTES) {
             throw OpenAiException::invalidRequest();
         }
+
+        $fingerprint = hash_file('sha256', $path);
+        $inputs = [
+            'profile_id' => $profile->id,
+            'file_sha256' => $fingerprint,
+            'field' => $profile->field,
+            'headline' => $profile->headline,
+            'bio' => $profile->bio,
+            'model' => config('services.openai.model'),
+        ];
+
+        return $this->policy->remember('cv-analysis', $inputs, fn () => $this->analyzeUncached($file, $profile));
+    }
+
+    private function analyzeUncached(UploadedFile $file, JobSeekerProfile $profile): array
+    {
 
         $instructions = 'أنت محلل سير ذاتية لمنصة مدارات. حلّل الملف المرفق بموضوعية، واكتب النتائج بالعربية المهنية المختصرة. التزم حصراً ببنية النتيجة المطلوبة، ولا تخترع معلومات غير موجودة في السيرة.';
         $context = [

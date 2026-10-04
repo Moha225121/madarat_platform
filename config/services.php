@@ -30,6 +30,10 @@ return [
 
     'openai' => [
         'key' => env('OPENAI_API_KEY'),
+        'enabled' => filter_var(env('OPENAI_ENABLED', true), FILTER_VALIDATE_BOOL),
+        'cache_ttl' => (int) env('OPENAI_CACHE_TTL', 604800),
+        'lock_seconds' => (int) env('OPENAI_LOCK_SECONDS', 180),
+        'lock_wait_seconds' => (int) env('OPENAI_LOCK_WAIT_SECONDS', 5),
         // Keep the default economical; override per environment when needed.
         'model' => env('OPENAI_MODEL', 'gpt-5-mini'),
         'max_output_tokens' => (int) env('OPENAI_MAX_OUTPUT_TOKENS', 800),
