@@ -9,6 +9,7 @@ use App\Http\Controllers\AssistantController;
 use App\Http\Controllers\CompanyProfileController;
 use App\Http\Controllers\CourseCatalogueController;
 use App\Http\Controllers\CvAnalysisController;
+use App\Http\Controllers\CvBuilderController;
 use App\Http\Controllers\EmployerDashboardController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\JobController;
@@ -26,7 +27,7 @@ use Inertia\Inertia;
 Route::get('/', HomeController::class)->name('home');
 Route::get('/jobs', [JobController::class, 'index'])->name('jobs.index');
 Route::get('/jobs/{job:slug}', [JobController::class, 'show'])->name('jobs.show');
-Route::get('/cv-builder', fn () => Inertia::render('CvBuilder'))->name('cv-builder');
+Route::get('/cv-builder', [CvBuilderController::class, 'show'])->name('cv-builder');
 Route::get('/courses', [CourseCatalogueController::class, 'index'])->name('courses.index');
 Route::get('/courses/{course:slug}', [CourseCatalogueController::class, 'show'])->name('courses.show');
 
@@ -45,6 +46,7 @@ Route::middleware(['auth', 'role:job_seeker'])->group(function () {
     Route::post('/seeker/profile', [JobSeekerProfileController::class, 'store'])->name('seeker.profile.store');
     Route::get('/seeker/cv-analysis', [CvAnalysisController::class, 'show'])->name('seeker.cv');
     Route::post('/seeker/cv-analysis', [CvAnalysisController::class, 'store'])->name('seeker.cv.store');
+    Route::post('/seeker/cv-builder', [CvBuilderController::class, 'store'])->name('seeker.cv-builder.store');
     Route::post('/jobs/{job}/apply', [ApplicationController::class, 'store'])->name('jobs.apply');
     Route::get('/seeker/applications', [ApplicationController::class, 'seekerIndex'])->name('seeker.applications');
 });

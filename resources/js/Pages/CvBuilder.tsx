@@ -1,5 +1,5 @@
 import { ChangeEvent, useState } from 'react';
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import {
     ArrowUpRight,
     CheckCircle2,
@@ -261,10 +261,14 @@ function TemplateCard({ template, index, onSelect }: { template: Template; index
     );
 }
 
-export default function CvBuilder() {
-    const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
-    const [resume, setResume] = useState<ResumeData>(initialResume);
-    const [colors, setColors] = useState<ResumeColors>({ primary: templates[0].primary, secondary: templates[0].secondary });
+type SavedCv = { template: string; resume_data: ResumeData; colors?: ResumeColors; updated_at: string } | null;
+
+export default function CvBuilder({ savedCv = null }: { savedCv?: SavedCv }) {
+    const { auth } = usePage().props;
+    const savedTemplateIndex = savedCv ? templates.findIndex((item) => item.name === savedCv.template) : -1;
+    const [selectedIndex, setSelectedIndex] = useState<number | null>(savedTemplateIndex >= 0 ? savedTemplateIndex : null);
+    const [resume, setResume] = useState<ResumeData>(savedCv?.resume_data ? { ...initialResume, ...savedCv.resume_data } : initialResume);
+    const [colors, setColors] = useState<ResumeColors>(savedCv?.colors || { primary: templates[0].primary, secondary: templates[0].secondary });
     const [summaryNotice, setSummaryNotice] = useState('');
     const [pdfLoading, setPdfLoading] = useState(false);
     const selectedTemplate = selectedIndex === null ? null : templates[selectedIndex];
@@ -361,6 +365,15 @@ export default function CvBuilder() {
                 pdf.addPage();
                 pdf.addImage(imageData, 'PNG', 0, position, pageWidth, imageHeight);
                 heightLeft -= pageHeight;
+            }
+
+            if (auth?.user?.role === 'job_seeker' && selectedTemplate) {
+                await window.axios.post('/seeker/cv-builder', {
+                    template: selectedTemplate.name,
+                    resume_data: resume,
+                    colors,
+                });
+                setSummaryNotice('تم حفظ بيانات السيرة في حسابك وتنزيل ملف PDF.');
             }
 
             pdf.save(`${resume.name || 'cv'}-madarat.pdf`);

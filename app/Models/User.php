@@ -36,6 +36,11 @@ class User extends Authenticatable
         return $this->hasOne(JobSeekerProfile::class);
     }
 
+    public function cvDocument(): HasOne
+    {
+        return $this->hasOne(CvDocument::class);
+    }
+
     public function companyProfile(): HasOne
     {
         return $this->hasOne(CompanyProfile::class);

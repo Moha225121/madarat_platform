@@ -25,6 +25,7 @@ class JobSeekerDashboardController extends Controller
             ]),
             'applicationCount' => $request->user()->applications()->count(),
             'interviewCount' => InterviewInvitation::whereHas('application', fn ($q) => $q->where('user_id', $request->user()->id))->count(),
+            'savedCv' => $request->user()->cvDocument()->first(),
         ]);
     }
 }

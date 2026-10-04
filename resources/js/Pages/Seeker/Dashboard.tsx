@@ -17,7 +17,7 @@ function RecommendedJobCard({ job }: { job: Job }) {
     );
 }
 
-export default function Dashboard({ profile, recommendedJobs, applicationCount, interviewCount }: any) {
+export default function Dashboard({ profile, recommendedJobs, applicationCount, interviewCount, savedCv }: any) {
     return (
         <DashboardLayout title="لوحة الباحث عن عمل">
             <div className="grid gap-4 md:grid-cols-3">
@@ -52,10 +52,12 @@ export default function Dashboard({ profile, recommendedJobs, applicationCount, 
                             <div>
                                 <h2 className="font-black">منشئ السيرة الذاتية</h2>
                                 <p className="mt-2 text-sm leading-7 text-cyan-50">
-                                    استخدم إطارات جاهزة واقتراحات ذكية لصياغة نسخة احترافية من سيرتك.
+                                    {savedCv
+                                        ? `لديك سيرة محفوظة في حسابك، وآخر تحديث ${new Date(savedCv.updated_at).toLocaleDateString('ar-LY')}.`
+                                        : 'لا توجد سيرة منشأة محفوظة بعد. استخدم الإطارات الجاهزة لصياغة نسخة احترافية.'}
                                 </p>
                                 <Link href="/cv-builder" className="mt-4 inline-flex items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-bold text-madarat-blue">
-                                    <WandSparkles className="h-4 w-4" /> إنشاء سيرة
+                                    <WandSparkles className="h-4 w-4" /> {savedCv ? 'عرض وتعديل سيرتي' : 'إنشاء سيرة'}
                                 </Link>
                             </div>
                         </div>
