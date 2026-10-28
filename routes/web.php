@@ -3,6 +3,7 @@
 use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\AdminDirectoryController;
 use App\Http\Controllers\AdminHomepageAdvertisementController;
+use App\Http\Controllers\AdminJobCategoryController;
 use App\Http\Controllers\AdminTrainingController;
 use App\Http\Controllers\ApplicationController;
 use App\Http\Controllers\AssistantController;
@@ -22,7 +23,6 @@ use App\Http\Controllers\RoleRedirectController;
 use App\Http\Controllers\TrainingCourseController;
 use App\Http\Controllers\TrainingProviderController;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 
 Route::get('/', HomeController::class)->name('home');
 Route::get('/jobs', [JobController::class, 'index'])->name('jobs.index');
@@ -96,6 +96,9 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/admin/advertisements', [AdminHomepageAdvertisementController::class, 'index'])->name('admin.advertisements.index');
     Route::post('/admin/advertisements', [AdminHomepageAdvertisementController::class, 'store'])->name('admin.advertisements.store');
     Route::delete('/admin/advertisements/{advertisement}', [AdminHomepageAdvertisementController::class, 'destroy'])->name('admin.advertisements.destroy');
+    Route::get('/admin/job-categories', [AdminJobCategoryController::class, 'index'])->name('admin.job-categories.index');
+    Route::post('/admin/job-categories', [AdminJobCategoryController::class, 'store'])->name('admin.job-categories.store');
+    Route::delete('/admin/job-categories/{jobCategory}', [AdminJobCategoryController::class, 'destroy'])->name('admin.job-categories.destroy');
     Route::get('/admin/job-seekers', [AdminDirectoryController::class, 'seekers'])->name('admin.seekers.index');
     Route::get('/admin/job-seekers/{seeker}', [AdminDirectoryController::class, 'seeker'])->name('admin.seekers.show');
     Route::delete('/admin/job-seekers/{seeker}', [AdminDirectoryController::class, 'destroySeeker'])->name('admin.seekers.destroy');

@@ -26,6 +26,12 @@ export default function JobShow({ job, match, alreadyApplied }: { job: Job; matc
                         <span>{job.company_profile?.company_name}</span>
                         <CompanyVerificationBadge status={job.company_profile?.verification_status} />
                     </p>
+                    {(job.category_label || job.subcategory_label) && (
+                        <div className="mt-3 flex flex-wrap gap-2">
+                            {job.category_label && <Badge tone="cyan">{job.category_label}</Badge>}
+                            {job.subcategory_label && <Badge tone="gray">{job.subcategory_label}</Badge>}
+                        </div>
+                    )}
 
                     <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                         <DetailItem label="الموقع" value={job.location} />

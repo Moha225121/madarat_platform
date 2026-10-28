@@ -1,11 +1,26 @@
 import { FormEvent, ReactNode, useMemo, useState } from 'react';
-import { router, useForm } from '@inertiajs/react';
+import { useForm } from '@inertiajs/react';
 import axios from 'axios';
-import { BriefcaseBusiness, CheckCircle2, FileText, ListChecks, MapPin, Save, Sparkles, WalletCards } from 'lucide-react';
+import { BriefcaseBusiness, CheckCircle2, FileText, ListChecks, MapPin, Save, Sparkles, Tags, WalletCards } from 'lucide-react';
 import { Button, Card, DashboardLayout } from '@/Components/Madarat';
+
+type JobSubcategory = {
+    key: string;
+    label: string;
+    label_en: string;
+};
+
+type JobCategory = {
+    key: string;
+    label: string;
+    label_en: string;
+    subcategories: JobSubcategory[];
+};
 
 type JobFormData = {
     title: string;
+    category: string;
+    subcategory: string;
     description: string;
     required_skills: string;
     responsibilities: string;
@@ -47,14 +62,24 @@ function SectionTitle({ icon: Icon, title }: { icon: any; title: string }) {
     );
 }
 
-export default function JobForm({ job, companyVerified = false }: any) {
+export default function JobForm({
+    job,
+    companyVerified = false,
+    categories = [],
+}: {
+    job?: any;
+    companyVerified?: boolean;
+    categories?: JobCategory[];
+}) {
     const isEdit = Boolean(job);
     const [generated, setGenerated] = useState(false);
     const [generating, setGenerating] = useState(false);
     const [generateError, setGenerateError] = useState('');
 
-    const { data, setData, processing, errors } = useForm<JobFormData>({
+    const { data, setData, processing, errors, transform, post, put } = useForm<JobFormData>({
         title: job?.title || '',
+        category: job?.category || '',
+        subcategory: job?.subcategory || '',
         description: job?.description || '',
         required_skills: (job?.required_skills || []).join('\n'),
         responsibilities: (job?.responsibilities || []).join('\n'),
@@ -69,6 +94,25 @@ export default function JobForm({ job, companyVerified = false }: any) {
 
     const skillCount = useMemo(() => splitItems(data.required_skills).length, [data.required_skills]);
     const responsibilityCount = useMemo(() => splitItems(data.responsibilities).length, [data.responsibilities]);
+    const selectedCategory = useMemo(
+        () => categories.find((category) => category.key === data.category),
+        [categories, data.category],
+    );
+    const selectedSubcategory = useMemo(
+        () => selectedCategory?.subcategories.find((subcategory) => subcategory.key === data.subcategory),
+        [selectedCategory, data.subcategory],
+    );
+
+    const changeCategory = (category: string) => {
+        const nextCategory = categories.find((item) => item.key === category);
+        const subcategoryIsCompatible = nextCategory?.subcategories.some((item) => item.key === data.subcategory) ?? false;
+
+        setData({
+            ...data,
+            category,
+            subcategory: subcategoryIsCompatible ? data.subcategory : '',
+        });
+    };
 
     const submit = (event: FormEvent) => {
         event.preventDefault();
@@ -76,12 +120,16 @@ export default function JobForm({ job, companyVerified = false }: any) {
     };
 
     const submitWithStatus = (status: JobFormData['status']) => {
-        const payload = { ...normalizePayload(data), status };
+        if (processing) {
+            return;
+        }
+
+        transform((current) => ({ ...normalizePayload(current), status }));
 
         if (isEdit) {
-            router.put(`/employer/jobs/${job.id}`, payload);
+            put(`/employer/jobs/${job.id}`);
         } else {
-            router.post('/employer/jobs', payload);
+            post('/employer/jobs');
         }
     };
 
@@ -112,6 +160,26 @@ export default function JobForm({ job, companyVerified = false }: any) {
                             </Field>
                             <Field label="الموقع" error={errors.location}>
                                 <input value={data.location} onChange={(e) => setData('location', e.target.value)} placeholder="طرابلس، عن بعد، أو هجين" className={fieldClass} />
+                            </Field>
+                            <Field label="الفئة الوظيفية" error={errors.category} hint="الفئة الوظيفية مطلوبة لحفظ الوظيفة أو إرسالها للنشر.">
+                                <select aria-label="الفئة الوظيفية" value={data.category} onChange={(event) => changeCategory(event.target.value)} className={fieldClass}>
+                                    <option value="">اختر الفئة الوظيفية</option>
+                                    {categories.map((category) => <option key={category.key} value={category.key}>{category.label}</option>)}
+                                </select>
+                            </Field>
+                            <Field label="الفئة الفرعية" error={errors.subcategory}>
+                                <select
+                                    aria-label="الفئة الفرعية"
+                                    value={data.subcategory}
+                                    onChange={(event) => setData('subcategory', event.target.value)}
+                                    disabled={!selectedCategory}
+                                    className={`${fieldClass} disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400`}
+                                >
+                                    <option value="">اختر الفئة الفرعية</option>
+                                    {(selectedCategory?.subcategories || []).map((subcategory) => (
+                                        <option key={subcategory.key} value={subcategory.key}>{subcategory.label}</option>
+                                    ))}
+                                </select>
                             </Field>
                             <Field label="نمط العمل" error={errors.job_type}>
                                 <select value={data.job_type} onChange={(e) => setData('job_type', e.target.value)} className={fieldClass}>
@@ -177,7 +245,7 @@ export default function JobForm({ job, companyVerified = false }: any) {
                         <div className="space-y-3">
                             <div className="rounded-lg bg-slate-50 p-4 text-sm leading-7 text-slate-600">
                                 {companyVerified
-                                    ? 'شركتك موثقة، سيتم نشر الوظيفة مباشرة عند الإرسال.'
+                                    ? 'شركتك موثقة، وستُرسل الوظيفة لمراجعة الإدارة قبل النشر.'
                                     : 'شركتك غير موثقة بعد، سيتم إرسال الوظيفة للمراجعة قبل النشر.'}
                                 <span className="mt-2 block font-bold text-madarat-navy">يمكنك حفظ الوظيفة كمسودة في أي وقت.</span>
                             </div>
@@ -186,6 +254,8 @@ export default function JobForm({ job, companyVerified = false }: any) {
 
                         <div className="mt-5 rounded-lg bg-slate-50 p-4 text-sm leading-7 text-slate-600">
                             <div className="flex items-center gap-2 font-bold text-madarat-navy"><MapPin className="h-4 w-4 text-madarat-cyan" /> {data.location || 'الموقع غير محدد'}</div>
+                            <p className="mt-2 flex items-center gap-2"><Tags className="h-4 w-4 text-madarat-cyan" /> الفئة: {selectedCategory?.label || 'غير محددة'}</p>
+                            <p>الفئة الفرعية: {selectedSubcategory?.label || 'غير محددة'}</p>
                             <p className="mt-2">المهارات: {skillCount}</p>
                             <p>المسؤوليات: {responsibilityCount}</p>
                             <p>نوع العمل: {data.job_type}</p>
@@ -199,7 +269,7 @@ export default function JobForm({ job, companyVerified = false }: any) {
 
                         <Button disabled={processing} className="mt-3 w-full">
                             <Save className="h-4 w-4" />
-                            {processing ? 'جار الحفظ...' : companyVerified ? 'نشر الوظيفة' : 'إرسال للمراجعة'}
+                            {processing ? 'جار الحفظ...' : 'إرسال للمراجعة'}
                         </Button>
                     </Card>
                 </aside>

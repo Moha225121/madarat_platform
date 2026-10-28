@@ -16,6 +16,10 @@ export type Job = {
     experience_level?: string;
     salary_min?: number | null;
     salary_max?: number | null;
+    category?: string | null;
+    subcategory?: string | null;
+    category_label?: string | null;
+    subcategory_label?: string | null;
     status?: string;
     required_skills?: string[];
     responsibilities?: string[];
@@ -188,7 +192,7 @@ export function DashboardLayout({ title, children }: PropsWithChildren<{ title: 
     const links = role === 'employer'
         ? [['/employer/dashboard', 'الرئيسية'], ['/employer/company', 'الشركة'], ['/employer/jobs/create', 'نشر وظيفة']]
         : role === 'admin'
-            ? [['/admin/dashboard', 'الرئيسية'], ['/admin/job-seekers', 'الباحثون عن عمل'], ['/admin/applications', 'طلبات التوظيف'], ['/admin/companies', 'الشركات'], ['/admin/trainers', 'مزودو التدريب'], ['/admin/jobs/pending', 'مراجعة الوظائف'], ['/admin/training', 'مراجعة التدريب'], ['/admin/companies/verification', 'توثيق الشركات'], ['/admin/advertisements', 'الصور الإعلانية']]
+            ? [['/admin/dashboard', 'الرئيسية'], ['/admin/job-seekers', 'الباحثون عن عمل'], ['/admin/applications', 'طلبات التوظيف'], ['/admin/companies', 'الشركات'], ['/admin/trainers', 'مزودو التدريب'], ['/admin/jobs/pending', 'مراجعة الوظائف'], ['/admin/job-categories', 'فئات الوظائف'], ['/admin/training', 'مراجعة التدريب'], ['/admin/companies/verification', 'توثيق الشركات'], ['/admin/advertisements', 'الصور الإعلانية']]
             : [['/seeker/dashboard', 'الرئيسية'], ['/seeker/profile', 'ملفي'], ['/seeker/cv-analysis', 'تحليل السيرة'], ['/cv-builder', 'منشئ السيرة'], ['/seeker/applications', 'طلباتي'], ['/courses', 'الدورات المتاحة'], ['/seeker/courses/registrations', 'دوراتي المسجّل بها'], ['/seeker/courses/recommended', 'دورات مرشحة لي']];
     return (
         <AppLayout>

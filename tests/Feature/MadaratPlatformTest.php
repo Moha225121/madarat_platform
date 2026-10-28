@@ -57,13 +57,15 @@ class MadaratPlatformTest extends TestCase
         CompanyProfile::create(['user_id' => $user->id, 'company_name' => 'شركة الاختبار']);
 
         $this->actingAs($user)->post('/employer/jobs', [
-            'title' => 'مطور نظم',
+            'title' => 'أخصائي تسويق رقمي',
             'description' => 'وصف وظيفي واضح ومناسب.',
             'required_skills' => 'Laravel, SQL',
+            'category' => 'marketing_sales',
+            'subcategory' => 'digital_marketing',
             'status' => 'published',
         ])->assertRedirect();
 
-        $this->assertDatabaseHas('jobs', ['title' => 'مطور نظم', 'status' => 'pending_review']);
+        $this->assertDatabaseHas('jobs', ['title' => 'أخصائي تسويق رقمي', 'status' => 'pending_review']);
     }
 
     public function test_verified_employer_jobs_still_require_admin_approval(): void
@@ -76,13 +78,15 @@ class MadaratPlatformTest extends TestCase
         ]);
 
         $this->actingAs($user)->post('/employer/jobs', [
-            'title' => 'مطور أول',
+            'title' => 'مسؤول مبيعات',
             'description' => 'وصف وظيفي واضح ومناسب.',
             'required_skills' => 'Laravel, SQL',
+            'category' => 'marketing_sales',
+            'subcategory' => 'sales',
             'status' => 'published',
         ])->assertRedirect();
 
-        $this->assertDatabaseHas('jobs', ['title' => 'مطور أول', 'status' => 'pending_review']);
+        $this->assertDatabaseHas('jobs', ['title' => 'مسؤول مبيعات', 'status' => 'pending_review']);
     }
 
     public function test_smart_matching_is_only_available_for_published_jobs(): void
@@ -110,6 +114,8 @@ class MadaratPlatformTest extends TestCase
             'title' => 'وظيفة مسودة',
             'description' => 'وصف وظيفي واضح ومناسب.',
             'required_skills' => 'Laravel, SQL',
+            'category' => 'marketing_sales',
+            'subcategory' => 'sales',
             'status' => 'draft',
         ])->assertRedirect();
 

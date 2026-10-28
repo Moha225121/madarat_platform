@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Database\Factories\JobFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -9,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Job extends Model
 {
-    /** @use HasFactory<\Database\Factories\JobFactory> */
+    /** @use HasFactory<JobFactory> */
     use HasFactory;
 
     protected $fillable = [
@@ -19,6 +20,8 @@ class Job extends Model
         'description',
         'responsibilities',
         'required_skills',
+        'category',
+        'subcategory',
         'location',
         'job_type',
         'contract_type',
@@ -41,6 +44,16 @@ class Job extends Model
     public function companyProfile(): BelongsTo
     {
         return $this->belongsTo(CompanyProfile::class);
+    }
+
+    public function categoryDefinition(): BelongsTo
+    {
+        return $this->belongsTo(JobCategory::class, 'category', 'key');
+    }
+
+    public function subcategoryDefinition(): BelongsTo
+    {
+        return $this->belongsTo(JobSubcategory::class, 'subcategory', 'key');
     }
 
     public function applications(): HasMany
