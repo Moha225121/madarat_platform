@@ -52,11 +52,14 @@ The exact final reference/owner baseline still needs verification by the guarded
 proposal before mapping. Do not ask for the same existing-baseline acceptance
 again unless its exact scope changes.
 
-The user also authorized pushing the preparation branch. Only
-codex/categories-persistent-uploads may be pushed at this stage. Keep main
-unchanged because its AutoDeploy is enabled. No pull request or merge is included.
+The preparation branch has been pushed. The user subsequently explicitly
+authorized publishing the update; do not ask for publication approval again.
+Keep main unchanged until the file-preserving cutover prerequisites are met,
+because its AutoDeploy is enabled. The publish instruction does not establish
+drain proof, complete or waive a restore test, or authorize a new paid cluster
+or moving production data to another device. A write freeze had been reserved
+for separate approval and has not been executed.
 
-Production mapping, a write freeze and deployment have not been authorized.
 A production restore drill has not been completed or waived. The existing restore UI alone is not proof of a
 tested backup, and a pre-import database backup does not contain former
 container-only upload bytes.
@@ -173,7 +176,9 @@ an implementation failure. Initial test-run environment errors were corrected
 with a synthetic local test key and the PostgreSQL extension in the actual test
 runner; they were not production findings.
 
-Existing-missing-baseline acceptance is recorded above. Remaining production
-gates are effective healthy mutation freeze/drain, final deltas and guarded
-mapping, production restore verification, and separate cutover/deployment
-approval. None is implied by these successful local checks or review-branch push.
+Existing-missing-baseline acceptance and publication approval are recorded above.
+Remaining production gates are effective healthy mutation freeze/drain, its
+previously reserved approval, final deltas and guarded mapping, and production
+restore verification with an approved target. These are not established by local
+checks or the review-branch push. Proceed with authorized preparation; never
+request the same already granted publication approval again.
