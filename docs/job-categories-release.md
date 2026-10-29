@@ -56,13 +56,16 @@ The preparation branch has been pushed. The user subsequently explicitly
 authorized publishing the update; do not ask for publication approval again.
 Keep main unchanged until the file-preserving cutover prerequisites are met,
 because its AutoDeploy is enabled. The publish instruction does not establish
-drain proof, complete or waive a restore test, or authorize a new paid cluster
-or moving production data to another device. A write freeze had been reserved
-for separate approval and has not been executed.
+drain proof or authorize a new paid cluster or moving production data to another
+device. On 2026-10-29 the user explicitly authorized the temporary upload freeze,
+final file preservation and publication on main, while prohibiting deletion of
+CVs or any data. Do not request the same freeze or publication approval again.
 
-A production restore drill has not been completed or waived. The existing restore UI alone is not proof of a
-tested backup, and a pre-import database backup does not contain former
-container-only upload bytes.
+On 2026-10-29 the user explicitly declined the restore test for this release and
+requested immediate publication. Do not request the test or its approval again.
+The production restore drill remains unperformed, so restore capability has not
+been proven. The existing restore UI alone is not proof of a tested backup, and
+a pre-import database backup does not contain former container-only upload bytes.
 
 Before cutover, finish a real two-instance mutation freeze and drain procedure.
 A local Apache method guard kept GET/HEAD health requests working while blocking
@@ -177,8 +180,9 @@ with a synthetic local test key and the PostgreSQL extension in the actual test
 runner; they were not production findings.
 
 Existing-missing-baseline acceptance and publication approval are recorded above.
-Remaining production gates are effective healthy mutation freeze/drain, its
-previously reserved approval, final deltas and guarded mapping, and production
-restore verification with an approved target. These are not established by local
-checks or the review-branch push. Proceed with authorized preparation; never
-request the same already granted publication approval again.
+Remaining production operations are effective healthy mutation freeze/drain,
+final deltas and guarded mapping, the two additive migrations, and publishing main.
+These are not established by local checks or the review-branch push. The operator
+renewed the DigitalOcean login session. Proceed with the authorized cutover;
+never request the same already granted freeze/publication approvals or the
+explicitly declined restore test again.
