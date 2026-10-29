@@ -5,6 +5,10 @@
 
     RewriteEngine On
 
+    # Never serve legacy uploads directly, even when public/storage is a symlink.
+    # The controller permits media only; private CVs require /files/cv/{profile}.
+    RewriteRule ^storage(?:/|$) index.php [L,NC]
+
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]

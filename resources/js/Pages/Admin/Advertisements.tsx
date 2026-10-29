@@ -13,9 +13,10 @@ type Advertisement = {
 
 type AdvertisementsProps = {
     advertisements: Advertisement[];
+    maxImageMegabytes?: number;
 };
 
-export default function Advertisements({ advertisements }: AdvertisementsProps) {
+export default function Advertisements({ advertisements, maxImageMegabytes = 5 }: AdvertisementsProps) {
     const { locale, t } = useLanguage();
     const form = useForm<{ image: File | null; alt_text: string }>({
         image: null,
@@ -124,7 +125,7 @@ export default function Advertisements({ advertisements }: AdvertisementsProps) 
                             {t(
                                 'يفضل استخدام صورة أفقية واضحة بنسبة قريبة من 4:3 وحجم لا يتجاوز 5 ميجابايت.',
                                 'Use a clear horizontal image close to a 4:3 ratio and no larger than 5 MB.',
-                            )}
+                            ).replace('5', String(maxImageMegabytes))}
                         </p>
                     </div>
                 </div>

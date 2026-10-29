@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreCompanyProfileRequest;
 use App\Models\CompanyProfile;
+use App\Services\UploadStorage;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -30,7 +31,7 @@ class CompanyProfileController extends Controller
         $existingCompany = $request->user()->companyProfile;
 
         if ($request->hasFile('logo')) {
-            $data['logo_path'] = $request->file('logo')->store('company-logos', 'public');
+            $data['logo_path'] = app(UploadStorage::class)->media()->putFile('company-logos', $request->file('logo'), UploadStorage::options($request->file('logo'), $request->user()->id));
         }
 
         unset($data['logo']);

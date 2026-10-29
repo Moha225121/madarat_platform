@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use App\Models\User;
-use Illuminate\Support\Facades\Storage;
 use Throwable;
 
 class AssistantService
@@ -57,9 +56,9 @@ class AssistantService
 
             if ($profile->cv_path) {
                 $profileContext['cv'] = [
-                    'disk' => 'public',
+                    'disk' => 'documents',
                     'path' => $profile->cv_path,
-                    'available' => Storage::disk('public')->exists($profile->cv_path),
+                    'available' => app(UploadStorage::class)->cvDisk($profile->cv_path) !== null,
                 ];
             }
 
@@ -130,15 +129,9 @@ class AssistantService
             $cvAvailable = data_get($context, 'job_seeker_profile.cv.available', false);
 
             if ($cvPath && $cvAvailable) {
-                $disk = Storage::disk('public');
-
-                return $this->openAi->textWithStoredFile(
-                    $instructions,
-                    $disk->path($cvPath),
-                    basename($cvPath),
-                    $disk->mimeType($cvPath) ?: 'application/octet-stream',
-                    $input,
-                );
+                return app(UploadStorage::class)->withCvFile($cvPath, fn (string $localPath): string => $this->openAi->textWithStoredFile(
+                    $instructions, $localPath, basename($cvPath), UploadStorage::cvMimeType($cvPath), $input,
+                ));
             }
 
             return $this->openAi->text($instructions, $input);

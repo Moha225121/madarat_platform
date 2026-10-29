@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreTrainingProviderProfileRequest;
 use App\Models\TrainingProviderProfile;
+use App\Services\UploadStorage;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -33,7 +34,7 @@ class TrainingProviderController extends Controller
         }
         foreach (['logo' => 'logo_path', 'profile_image' => 'profile_image_path'] as $input => $column) {
             if ($request->hasFile($input)) {
-                $data[$column] = $request->file($input)->store('training-providers', 'public');
+                $data[$column] = app(UploadStorage::class)->media()->putFile('training-providers', $request->file($input), UploadStorage::options($request->file($input), $request->user()->id));
             } unset($data[$input]);
         }
         if ($provider->verification_status === 'rejected') {

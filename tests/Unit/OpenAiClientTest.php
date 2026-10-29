@@ -164,6 +164,7 @@ class OpenAiClientTest extends TestCase
 
     public function test_plain_text_call_remains_backward_compatible_and_does_not_add_cv_options(): void
     {
+        config(['services.openai.max_output_tokens' => null]);
         Http::fake(['*' => Http::response(['output_text' => '  إجابة مهنية  '])]);
 
         $result = $this->client()->text('تعليمات', 'سؤال');
@@ -179,6 +180,24 @@ class OpenAiClientTest extends TestCase
                 && ! array_key_exists('text', $payload)
                 && ! array_key_exists('max_output_tokens', $payload);
         });
+    }
+
+    public function test_plain_text_call_uses_the_configured_output_limit_without_cv_options(): void
+    {
+        config(['services.openai.max_output_tokens' => 800]);
+        Http::fake(['*' => Http::response(['output_text' => '  إجابة مهنية  '])]);
+
+        $result = $this->client()->text('تعليمات', 'سؤال');
+
+        $this->assertSame('إجابة مهنية', $result);
+        Http::assertSent(fn ($request): bool => $request->url() === 'https://openai.test/v1/responses'
+            && $request->data() === [
+                'instructions' => 'تعليمات',
+                'input' => 'سؤال',
+                'model' => 'test-default-model',
+                'max_output_tokens' => 800,
+            ]);
+        Http::assertSentCount(1);
     }
 
     public function test_supported_request_options_can_override_model_format_and_output_limit(): void

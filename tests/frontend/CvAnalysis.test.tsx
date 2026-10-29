@@ -1,10 +1,12 @@
-import { act, cleanup, render, screen } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 const inertia = vi.hoisted(() => ({
     post: vi.fn(),
     reload: vi.fn(),
     processing: false,
+    setError: vi.fn(),
+    locale: 'ar',
 }));
 
 vi.mock('@inertiajs/react', () => ({
@@ -15,9 +17,13 @@ vi.mock('@inertiajs/react', () => ({
         post: inertia.post,
         processing: inertia.processing,
         errors: {},
-        setError: vi.fn(),
+        setError: inertia.setError,
         clearErrors: vi.fn(),
     }),
+}));
+
+vi.mock('@/lib/language', () => ({
+    useLanguage: () => ({ t: (arabic: string, english: string) => inertia.locale === 'en' ? english : arabic }),
 }));
 
 vi.mock('@/Components/Madarat', async () => {
@@ -50,11 +56,31 @@ const analyzedProfile = {
 afterEach(() => {
     cleanup();
     inertia.processing = false;
+    inertia.locale = 'ar';
     vi.clearAllMocks();
     vi.useRealTimers();
 });
 
 describe('CV analysis page', () => {
+    it('uses the server file-size limit and an authenticated download link', () => {
+        const { container } = render(<CvAnalysis profile={{ ...analyzedProfile, id: 7, cv_path: 'cvs/private.pdf' }} maxCvBytes={2 * 1024 * 1024} />);
+        expect(screen.getByText('PDF أو DOC أو DOCX — بحد أقصى 2 ميجابايت.')).toBeTruthy();
+        expect(screen.getByRole('link', { name: 'تنزيل السيرة الذاتية' }).getAttribute('href')).toBe('/files/cv/7');
+        expect(document.querySelector('a[href*="/storage/cvs/"]')).toBeNull();
+        const oversized = new File(['synthetic'], 'candidate.pdf', { type: 'application/pdf' });
+        Object.defineProperty(oversized, 'size', { value: 2 * 1024 * 1024 + 1 });
+        fireEvent.change(container.querySelector('input[type="file"]')!, { target: { files: [oversized] } });
+        expect(inertia.setError).toHaveBeenCalledWith('cv', 'يجب ألا يتجاوز حجم السيرة الذاتية 2 ميجابايت.');
+        expect(inertia.post).not.toHaveBeenCalled();
+    });
+
+    it('localizes the dynamic upload limit and protected download action', () => {
+        inertia.locale = 'en';
+        render(<CvAnalysis profile={{ ...analyzedProfile, id: 7, cv_path: 'cvs/private.pdf' }} maxCvBytes={2 * 1024 * 1024} />);
+        expect(screen.getByText('PDF, DOC, or DOCX — maximum 2 MB.')).toBeTruthy();
+        expect(screen.getByRole('link', { name: 'Download CV' }).getAttribute('href')).toBe('/files/cv/7');
+    });
+
     it('renders every field from a successful structured analysis', () => {
         render(<CvAnalysis profile={analyzedProfile} />);
 

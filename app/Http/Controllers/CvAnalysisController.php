@@ -6,11 +6,11 @@ use App\Exceptions\OpenAiException;
 use App\Http\Requests\AnalyzeCvRequest;
 use App\Jobs\AnalyzeCv;
 use App\Models\JobSeekerProfile;
+use App\Services\UploadStorage;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
@@ -24,14 +24,15 @@ class CvAnalysisController extends Controller
     {
         return Inertia::render('Seeker/CvAnalysis', [
             'profile' => $request->user()->jobSeekerProfile()->firstOrCreate(['user_id' => $request->user()->id]),
+            'maxCvBytes' => UploadStorage::maxKilobytes('cv') * 1024,
         ]);
     }
 
-    public function store(AnalyzeCvRequest $request): RedirectResponse
+    public function store(AnalyzeCvRequest $request, UploadStorage $storage): RedirectResponse
     {
         $profile = $request->user()->jobSeekerProfile()->firstOrCreate(['user_id' => $request->user()->id]);
         $uploadedFile = $request->file('cv');
-        $path = $uploadedFile->store('cvs', 'public');
+        $path = $storage->documents()->putFile('cvs', $uploadedFile, UploadStorage::options($uploadedFile, $request->user()->id));
         $attemptId = (string) Str::uuid();
         $originalName = basename(str_replace('\\', '/', $uploadedFile->getClientOriginalName()));
 
@@ -60,7 +61,7 @@ class CvAnalysisController extends Controller
                 ]);
             });
         } catch (Throwable $exception) {
-            Storage::disk('public')->delete($path);
+            $storage->documents()->delete($path);
 
             throw $exception;
         }

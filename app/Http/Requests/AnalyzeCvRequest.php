@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Services\UploadStorage;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Validator;
@@ -24,7 +25,7 @@ class AnalyzeCvRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'cv' => ['required', 'file', 'mimes:pdf,doc,docx', 'extensions:pdf,doc,docx', 'max:15360'],
+            'cv' => ['required', 'file', 'mimes:pdf,doc,docx', 'extensions:pdf,doc,docx', 'max:'.UploadStorage::maxKilobytes('cv')],
         ];
     }
 
@@ -55,7 +56,7 @@ class AnalyzeCvRequest extends FormRequest
             'cv.required' => 'يرجى اختيار ملف السيرة الذاتية.',
             'cv.mimes' => 'يجب أن تكون السيرة بصيغة PDF أو DOC أو DOCX.',
             'cv.extensions' => 'يجب أن يكون امتداد السيرة PDF أو DOC أو DOCX.',
-            'cv.max' => 'يجب ألا يتجاوز حجم السيرة الذاتية 15 ميجابايت.',
+            'cv.max' => 'يجب ألا يتجاوز حجم السيرة الذاتية '.(UploadStorage::maxKilobytes('cv') / 1024).' ميجابايت.',
         ];
     }
 }

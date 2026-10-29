@@ -8,12 +8,12 @@ use App\Models\HomepageAdvertisement;
 use App\Models\JobSeekerProfile;
 use App\Models\TrainingCourse;
 use App\Models\TrainingProviderProfile;
+use App\Services\UploadStorage;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -25,7 +25,6 @@ class AdminHomepageAdvertisementController extends Controller
     public function index(Request $request): Response
     {
         $this->ensureAdministrator($request);
-        $disk = Storage::disk('public');
 
         $advertisements = HomepageAdvertisement::query()
             ->orderBy('id')
@@ -33,7 +32,7 @@ class AdminHomepageAdvertisementController extends Controller
             ->map(fn (HomepageAdvertisement $advertisement): array => [
                 'id' => $advertisement->id,
                 'image_url' => HomepageAdvertisement::isManagedImagePath($advertisement->image_path)
-                    ? asset('storage/'.ltrim($advertisement->image_path, '/'))
+                    ? UploadStorage::mediaUrl($advertisement->image_path)
                     : null,
                 'alt_text' => $advertisement->alt_text,
                 'created_at' => $advertisement->created_at?->toISOString(),
@@ -42,6 +41,7 @@ class AdminHomepageAdvertisementController extends Controller
 
         return Inertia::render('Admin/Advertisements', [
             'advertisements' => $advertisements,
+            'maxImageMegabytes' => UploadStorage::maxKilobytes('advertisement') / 1024,
         ]);
     }
 
@@ -57,10 +57,11 @@ class AdminHomepageAdvertisementController extends Controller
                 throw new RuntimeException('The validated advertisement image has an unsupported extension.');
             }
 
-            $path = $file->storeAs(
+            $path = app(UploadStorage::class)->media()->putFileAs(
                 HomepageAdvertisement::STORAGE_DIRECTORY,
+                $file,
                 Str::uuid()->toString().'.'.$extension,
-                'public',
+                UploadStorage::options($file, $request->user()->id),
             );
 
             if (! is_string($path) || ! HomepageAdvertisement::isManagedImagePath($path)) {
@@ -149,7 +150,7 @@ class AdminHomepageAdvertisementController extends Controller
                 return true;
             }
 
-            $disk = Storage::disk('public');
+            $disk = app(UploadStorage::class)->media();
 
             if (! $disk->exists($imagePath)) {
                 return true;
@@ -192,7 +193,7 @@ class AdminHomepageAdvertisementController extends Controller
         }
 
         try {
-            $disk = Storage::disk('public');
+            $disk = app(UploadStorage::class)->media();
 
             if ($disk->exists($path) && ! $disk->delete($path) && $disk->exists($path)) {
                 $this->logCleanupFailure(null, 'orphan_delete_returned_false', $path);

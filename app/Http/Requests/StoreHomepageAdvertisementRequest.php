@@ -2,12 +2,18 @@
 
 namespace App\Http\Requests;
 
+use App\Services\UploadStorage;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreHomepageAdvertisementRequest extends FormRequest
 {
     public const INVALID_IMAGE_MESSAGE = 'تعذر رفع الصورة. تأكد من اختيار صورة صحيحة بصيغة JPG أو PNG أو WebP وبحجم لا يتجاوز 5 ميجابايت.';
+
+    private static function invalidImageMessage(): string
+    {
+        return str_replace('5 ميجابايت', (UploadStorage::maxKilobytes('advertisement') / 1024).' ميجابايت', self::INVALID_IMAGE_MESSAGE);
+    }
 
     public function authorize(): bool
     {
@@ -28,7 +34,7 @@ class StoreHomepageAdvertisementRequest extends FormRequest
                 'mimetypes:image/jpeg,image/png,image/webp',
                 'mimes:jpg,jpeg,png,webp',
                 'extensions:jpg,jpeg,png,webp',
-                'max:5120',
+                'max:'.UploadStorage::maxKilobytes('advertisement'),
             ],
             'alt_text' => ['nullable', 'string', 'max:160'],
         ];
@@ -40,13 +46,13 @@ class StoreHomepageAdvertisementRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'image.required' => self::INVALID_IMAGE_MESSAGE,
-            'image.file' => self::INVALID_IMAGE_MESSAGE,
-            'image.image' => self::INVALID_IMAGE_MESSAGE,
-            'image.mimetypes' => self::INVALID_IMAGE_MESSAGE,
-            'image.mimes' => self::INVALID_IMAGE_MESSAGE,
-            'image.extensions' => self::INVALID_IMAGE_MESSAGE,
-            'image.max' => self::INVALID_IMAGE_MESSAGE,
+            'image.required' => self::invalidImageMessage(),
+            'image.file' => self::invalidImageMessage(),
+            'image.image' => self::invalidImageMessage(),
+            'image.mimetypes' => self::invalidImageMessage(),
+            'image.mimes' => self::invalidImageMessage(),
+            'image.extensions' => self::invalidImageMessage(),
+            'image.max' => self::invalidImageMessage(),
             'alt_text.string' => 'يجب أن يكون الوصف البديل للصورة نصًا.',
             'alt_text.max' => 'يجب ألا يتجاوز الوصف البديل للصورة 160 حرفًا.',
         ];
@@ -66,7 +72,7 @@ class StoreHomepageAdvertisementRequest extends FormRequest
     {
         $altTextMessage = $validator->errors()->first('alt_text');
         $message = $validator->errors()->has('image') || $altTextMessage === ''
-            ? self::INVALID_IMAGE_MESSAGE
+            ? self::invalidImageMessage()
             : $altTextMessage;
 
         $this->session()->flash('error', $message);

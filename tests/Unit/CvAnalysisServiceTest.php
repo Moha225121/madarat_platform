@@ -19,6 +19,7 @@ class CvAnalysisServiceTest extends TestCase
         parent::setUp();
 
         config([
+            'services.openai.enabled' => true,
             'services.openai.key' => 'test-key-never-sent-to-a-real-provider',
             'services.openai.model' => 'cv-test-model',
             'services.openai.base_url' => 'https://openai.test/v1',
@@ -28,6 +29,28 @@ class CvAnalysisServiceTest extends TestCase
         ]);
 
         Http::preventStrayRequests();
+    }
+
+    public function test_repeated_identical_cv_analysis_reuses_the_provider_result_without_another_paid_request(): void
+    {
+        $profile = (new JobSeekerProfile)->forceFill([
+            'id' => 71,
+            'field' => 'هندسة البرمجيات',
+            'headline' => 'مطور',
+            'bio' => 'Synthetic cache context',
+        ]);
+        $file = UploadedFile::fake()->createWithContent('private.pdf', '%PDF-1.7 synthetic private CV');
+        $providerResult = $this->validProviderResult();
+        Http::fake(['*' => Http::response(['output_text' => json_encode($providerResult, JSON_UNESCAPED_UNICODE)])]);
+
+        $service = app(CvAnalysisService::class);
+        $first = $service->analyze($file, $profile);
+        $second = $service->analyze($file, $profile);
+
+        $this->assertSame($first, $second);
+        $this->assertSame($providerResult['score'], $second['score']);
+        $this->assertSame($providerResult['extracted_skills'], $second['extracted_skills']);
+        Http::assertSentCount(1);
     }
 
     /**

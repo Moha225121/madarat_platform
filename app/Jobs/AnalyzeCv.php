@@ -5,13 +5,13 @@ namespace App\Jobs;
 use App\Exceptions\OpenAiException;
 use App\Models\JobSeekerProfile;
 use App\Services\CvAnalysisService;
+use App\Services\UploadStorage;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Queue\TimeoutExceededException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
 use Throwable;
 
 class AnalyzeCv implements ShouldQueue
@@ -59,7 +59,6 @@ class AnalyzeCv implements ShouldQueue
             return;
         }
 
-        $absolutePath = Storage::disk('public')->path($this->path);
         $extension = strtolower(pathinfo($this->originalName, PATHINFO_EXTENSION));
         $mimeType = match ($extension) {
             'pdf' => 'application/pdf',
@@ -68,16 +67,10 @@ class AnalyzeCv implements ShouldQueue
             default => 'application/octet-stream',
         };
 
-        if (! is_file($absolutePath)) {
-            $this->handleFailure(OpenAiException::missingFile());
-
-            return;
-        }
-
-        $file = new UploadedFile($absolutePath, $this->safeOriginalName(), $mimeType, null, true);
-
         try {
-            $result = $service->analyze($file, $profile);
+            $result = app(UploadStorage::class)->withCvFile($this->path, function (string $localPath) use ($service, $profile, $mimeType): array {
+                return $service->analyze(new UploadedFile($localPath, $this->safeOriginalName(), $mimeType, null, true), $profile);
+            });
         } catch (OpenAiException $exception) {
             $this->handleFailure($exception);
 
@@ -204,13 +197,16 @@ class AnalyzeCv implements ShouldQueue
 
     private function logFailure(OpenAiException $exception, string $message): void
     {
-        $absolutePath = Storage::disk('public')->path($this->path);
-        $size = is_file($absolutePath) ? filesize($absolutePath) : false;
+        try {
+            $size = app(UploadStorage::class)->cvDisk($this->path)?->size($this->path);
+        } catch (Throwable) {
+            $size = null;
+        }
 
         Log::error($message, [
             'profile_id' => $this->profileId,
             'file_extension' => strtolower(pathinfo($this->originalName, PATHINFO_EXTENSION)),
-            'file_size' => $size === false ? null : $size,
+            'file_size' => $size,
             'http_status' => $exception->httpStatus,
             'provider_error_type' => $exception->providerType,
             'provider_error_code' => $exception->providerCode,

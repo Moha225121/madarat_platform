@@ -60,7 +60,8 @@ class CvAnalysisService
             throw OpenAiException::missingFile();
         }
 
-        if ($size === false || $size < 1 || $size > self::MAX_FILE_BYTES) {
+        $maxBytes = UploadStorage::maxKilobytes('cv') * 1024;
+        if ($size === false || $size < 1 || $size > $maxBytes) {
             throw OpenAiException::invalidRequest();
         }
 
@@ -79,7 +80,8 @@ class CvAnalysisService
 
     private function analyzeUncached(UploadedFile $file, JobSeekerProfile $profile): array
     {
-
+        $extension = strtolower($file->getClientOriginalExtension());
+        $maxBytes = UploadStorage::maxKilobytes('cv') * 1024;
         $instructions = 'أنت محلل سير ذاتية لمنصة مدارات. حلّل الملف المرفق بموضوعية، واكتب النتائج بالعربية المهنية المختصرة. التزم حصراً ببنية النتيجة المطلوبة، ولا تخترع معلومات غير موجودة في السيرة.';
         $context = [
             'target_field' => $profile->field,
@@ -92,7 +94,7 @@ class CvAnalysisService
 
         $text = $this->openAi->textWithFile($instructions, $file, $prompt, [
             'mime_type' => self::MIME_TYPES[$extension],
-            'max_file_bytes' => self::MAX_FILE_BYTES,
+            'max_file_bytes' => $maxBytes,
             'max_output_tokens' => 2000,
             'text_format' => $this->structuredOutputFormat(),
         ]);

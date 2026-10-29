@@ -24,7 +24,7 @@ export default function CompanyVerification({ company, missingFields = [] }: any
                             <p className="mt-2 text-sm text-slate-500">صاحب الحساب: {company.user?.name} - {company.user?.email}</p>
                         </div>
                         {company.logo_path && (
-                            <img src={`/storage/${company.logo_path}`} alt={company.company_name} className="h-20 w-20 rounded-lg object-contain ring-1 ring-cyan-100" />
+                            <img src={`/media/${company.logo_path}`} alt={company.company_name} className="h-20 w-20 rounded-lg object-contain ring-1 ring-cyan-100" />
                         )}
                     </div>
 

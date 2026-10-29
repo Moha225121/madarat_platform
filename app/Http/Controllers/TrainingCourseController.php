@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreTrainingCourseRequest;
 use App\Models\TrainingCourse;
 use App\Services\CourseAudienceAnalysisService;
+use App\Services\UploadStorage;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -126,7 +127,7 @@ class TrainingCourseController extends Controller
         }
 
         if ($request->hasFile('cover_image')) {
-            $data['cover_image_path'] = $request->file('cover_image')->store('training-courses', 'public');
+            $data['cover_image_path'] = app(UploadStorage::class)->media()->putFile('training-courses', $request->file('cover_image'), UploadStorage::options($request->file('cover_image'), $request->user()->id));
         }
 
         unset($data['cover_image']);
@@ -152,6 +153,6 @@ class TrainingCourseController extends Controller
             $slug = "$base-$i";
         }
 
-return $slug;
+        return $slug;
     }
 }

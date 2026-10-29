@@ -33,18 +33,31 @@ return [
         'local' => [
             'driver' => 'local',
             'root' => storage_path('app/private'),
-            'serve' => true,
+            'serve' => false,
             'throw' => false,
             'report' => false,
         ],
 
         'public' => [
-            'driver' => 'local',
-            'root' => storage_path('app/public'),
+            'driver' => 'database',
+            'namespace' => 'public',
             'url' => rtrim(env('APP_URL', 'http://localhost'), '/').'/storage',
-            'visibility' => 'public',
-            'throw' => false,
+            'visibility' => 'private',
+            'throw' => true,
             'report' => false,
+        ],
+
+        'documents' => [
+            'driver' => 'database',
+            'namespace' => 'documents',
+            'visibility' => 'private',
+            'throw' => true,
+            'report' => false,
+        ],
+
+        'legacy_public' => [
+            'driver' => 'local', 'root' => storage_path('app/public'),
+            'visibility' => 'private', 'serve' => false, 'throw' => true,
         ],
 
         's3' => [

@@ -22,18 +22,23 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RoleRedirectController;
 use App\Http\Controllers\TrainingCourseController;
 use App\Http\Controllers\TrainingProviderController;
+use App\Http\Controllers\UploadController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', HomeController::class)->name('home');
 Route::get('/jobs', [JobController::class, 'index'])->name('jobs.index');
 Route::get('/jobs/{job:slug}', [JobController::class, 'show'])->name('jobs.show');
 Route::get('/cv-builder', [CvBuilderController::class, 'show'])->name('cv-builder');
+Route::get('/media/{path}', [UploadController::class, 'media'])->where('path', '.*')->name('uploads.media');
+// Keep legacy image URLs working; CV downloads require authorization.
+Route::get('/storage/{path}', [UploadController::class, 'media'])->where('path', '.*');
 Route::get('/courses', [CourseCatalogueController::class, 'index'])->name('courses.index');
 Route::get('/courses/{course:slug}', [CourseCatalogueController::class, 'show'])->name('courses.show');
 
 Route::get('/dashboard', RoleRedirectController::class)->middleware('auth')->name('dashboard');
 
 Route::middleware('auth')->group(function () {
+    Route::get('/files/cv/{profile}', [UploadController::class, 'cv'])->name('uploads.cv');
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');

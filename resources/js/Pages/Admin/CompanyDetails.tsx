@@ -66,7 +66,7 @@ export default function CompanyDetails({ company, jobs, stats }: any) {
                             </div>
                             <p className="mt-1 text-sm text-slate-500">صاحب الحساب: {company.user?.name || 'غير محدد'} · {company.user?.email || 'غير محدد'} · الهاتف: {company.user?.phone || 'غير محدد'}</p>
                         </div>
-                        {company.logo_path && <img src={`/storage/${company.logo_path}`} alt={company.company_name} className="h-20 w-20 rounded-lg object-contain ring-1 ring-cyan-100" />}
+                        {company.logo_path && <img src={`/media/${company.logo_path}`} alt={company.company_name} className="h-20 w-20 rounded-lg object-contain ring-1 ring-cyan-100" />}
                     </div>
 
                     <dl className="mt-5 grid gap-4 md:grid-cols-2">

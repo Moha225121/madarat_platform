@@ -10,11 +10,11 @@ use App\Models\JobSeekerProfile;
 use App\Models\TrainingCourse;
 use App\Models\TrainingProviderProfile;
 use App\Models\User;
+use App\Services\UploadStorage;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 use RuntimeException;
@@ -418,7 +418,7 @@ class AdminDirectoryController extends Controller
     /** @param array<int, string> $paths */
     private function deletePublicFiles(array $paths): void
     {
-        if ($paths !== [] && ! Storage::disk('public')->delete($paths)) {
+        if ($paths !== [] && ! app(UploadStorage::class)->media()->delete($paths)) {
             throw new RuntimeException('One or more account-owned files could not be deleted.');
         }
     }

@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Services\UploadStorage;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -26,7 +27,7 @@ class StoreCompanyProfileRequest extends FormRequest
             'company_name' => ['required', 'string', 'max:255'],
             'industry' => ['nullable', 'string', 'max:255'],
             'headquarters' => ['nullable', 'string', 'max:255'],
-            'logo' => ['nullable', 'image', 'mimes:png,jpg,jpeg,webp', 'max:2048'],
+            'logo' => ['nullable', 'image', 'mimes:png,jpg,jpeg,webp', 'max:'.UploadStorage::maxKilobytes('image')],
             'description' => ['nullable', 'string', 'max:3000'],
         ];
     }

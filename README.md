@@ -353,10 +353,19 @@ npm run build
 
 ## Deployment notes
 
+For the existing Madarat production installation, follow
+[the reviewed category/upload release procedure](docs/job-categories-release.md).
+Preserve the current PostgreSQL database, environment, accounts and uploads.
+Initial preserved copies still require final delta capture, approved mapping,
+backup verification and explicit deployment approval. The following general
+installation checklist does not authorize a production migration or cutover.
+
 1. Configure production `APP_KEY`, `APP_URL`, database, mail, queue, filesystem, and OpenAI variables.
 2. Set `APP_ENV=production` and `APP_DEBUG=false`.
 3. Install optimized PHP dependencies and build frontend assets.
-4. Run migrations with `php artisan migrate --force`.
+4. Apply only the reviewed migrations for the release; the existing-production
+   category command is `php artisan madarat:migrate-job-categories --force`
+   after its release prerequisites and separate approval.
 5. Ensure `storage` and `bootstrap/cache` are writable.
 6. Configure a persistent queue worker when using queued jobs.
 7. Serve the application through the `public` directory.
@@ -368,10 +377,14 @@ The included `Procfile` starts a Heroku-compatible Apache process and clears Lar
 ### Uploaded logos or CV links do not work
 
 ```bash
-php artisan storage:link
+php artisan uploads:check
 ```
 
-Also confirm the web-server user can read `storage/app/public`.
+This is a read-only PostgreSQL disk/schema/ledger check. Images stream through
+the allowlisted media controller and CV downloads require their authenticated
+profile route. Confirm the file was imported with the correct owner; a symlink
+does not restore missing bytes. A successful configuration check does not prove
+file coverage or backup restorability.
 
 ### CV analysis fails
 

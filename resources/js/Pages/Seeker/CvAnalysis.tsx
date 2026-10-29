@@ -1,10 +1,13 @@
 import { router, useForm } from '@inertiajs/react';
 import { useEffect } from 'react';
 import { Badge, Button, Card, DashboardLayout, ProgressBar } from '@/Components/Madarat';
+import { useLanguage } from '@/lib/language';
 
 type CvStatus = 'pending' | 'processing' | 'analyzed' | 'failed';
 
 type CvAnalysisProfile = {
+    id?: number;
+    cv_path?: string | null;
     cv_status: CvStatus;
     cv_analysis_error_code?: string | null;
     profile_score?: number | null;
@@ -20,6 +23,7 @@ type CvAnalysisProfile = {
 
 type CvAnalysisProps = {
     profile: CvAnalysisProfile;
+    maxCvBytes?: number;
 };
 
 const invalidFileErrorCodes = new Set([
@@ -50,13 +54,19 @@ function failureMessage(errorCode?: string | null): string {
     return 'خدمة تحليل السيرة الذاتية غير متاحة حاليًا. يرجى المحاولة لاحقًا أو التواصل مع إدارة المنصة.';
 }
 
-export default function CvAnalysis({ profile }: CvAnalysisProps) {
+export default function CvAnalysis({ profile, maxCvBytes = 15 * 1024 * 1024 }: CvAnalysisProps) {
+    const { t } = useLanguage();
     const { data, setData, post, processing, errors, setError, clearErrors } = useForm<{ cv: File | null }>({ cv: null });
     const hasAnalysis = profile.cv_status === 'analyzed';
     const isAnalyzing = profile.cv_status === 'processing';
     const hasFailed = profile.cv_status === 'failed';
     const isBusy = processing || isAnalyzing;
-    const maxFileSize = 15 * 1024 * 1024;
+    const maxFileSize = maxCvBytes;
+    const maxMegabytes = maxFileSize / (1024 * 1024);
+    const sizeError = t(
+        `يجب ألا يتجاوز حجم السيرة الذاتية ${maxMegabytes} ميجابايت.`,
+        `The size of the CV must not exceed ${maxMegabytes} MB.`,
+    );
     const profileScore = hasAnalysis ? (profile.profile_score ?? 0) : 0;
     const extractedSkills = Array.isArray(profile.extracted_skills) ? profile.extracted_skills : [];
     const missingSkills = Array.isArray(profile.missing_skills) ? profile.missing_skills : [];
@@ -92,7 +102,7 @@ export default function CvAnalysis({ profile }: CvAnalysisProps) {
                         }
 
                         if (data.cv.size > maxFileSize) {
-                            setError('cv', 'يجب ألا يتجاوز حجم السيرة الذاتية 15 ميجابايت.');
+                            setError('cv', sizeError);
                             return;
                         }
 
@@ -108,12 +118,15 @@ export default function CvAnalysis({ profile }: CvAnalysisProps) {
                                 setData('cv', file);
 
                                 if (file && file.size > maxFileSize) {
-                                    setError('cv', 'يجب ألا يتجاوز حجم السيرة الذاتية 15 ميجابايت.');
+                                    setError('cv', sizeError);
                                 }
                             }}
                             className="w-full rounded-lg border border-slate-200 p-2 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:opacity-60"
                         />
-                        <p className="mt-2 text-xs text-slate-500">PDF أو DOC أو DOCX — بحد أقصى 15 ميجابايت.</p>
+                        <p className="mt-2 text-xs text-slate-500">{t(
+                            `PDF أو DOC أو DOCX — بحد أقصى ${maxMegabytes} ميجابايت.`,
+                            `PDF, DOC, or DOCX — maximum ${maxMegabytes} MB.`,
+                        )}</p>
                         {errors.cv && <p className="mt-2 text-sm font-bold text-red-600">{errors.cv}</p>}
                         <Button disabled={isBusy} className="mt-4 w-full">
                             {processing
@@ -125,6 +138,9 @@ export default function CvAnalysis({ profile }: CvAnalysisProps) {
                                         : 'تحليل السيرة الذاتية'}
                         </Button>
                     </form>
+                    {profile.id && profile.cv_path && (
+                        <a href={`/files/cv/${profile.id}`} className="mt-3 inline-block text-sm font-bold text-madarat-blue">{t('تنزيل السيرة الذاتية', 'Download CV')}</a>
+                    )}
 
                     {hasFailed && (
                         <div className="mt-4 rounded-lg bg-red-50 p-3 text-sm font-bold text-red-700" role="alert">

@@ -103,7 +103,7 @@ export default function JobSeekerDetails({ seeker, stats }: any) {
                     <Card>
                         <h2 className="font-black text-madarat-navy">السيرة الذاتية والتحليل</h2>
                         <p className="mt-2 text-sm text-slate-600">حالة السيرة: {statusLabel[profile?.cv_status] || 'غير محددة'}</p>
-                        {profile?.cv_path ? <a href={`/storage/${profile.cv_path}`} target="_blank" rel="noreferrer" className="mt-3 inline-flex rounded-lg bg-madarat-blue px-4 py-2 text-sm font-black text-white hover:bg-madarat-navy">عرض ملف السيرة</a> : <p className="mt-3 text-sm text-slate-500">لم يتم رفع ملف سيرة ذاتية.</p>}
+                        {profile?.cv_path ? <a href={`/files/cv/${profile.id}`} target="_blank" rel="noreferrer" className="mt-3 inline-flex rounded-lg bg-madarat-blue px-4 py-2 text-sm font-black text-white hover:bg-madarat-navy">عرض ملف السيرة</a> : <p className="mt-3 text-sm text-slate-500">لم يتم رفع ملف سيرة ذاتية.</p>}
                         <div className="mt-4">
                             <p className="text-sm font-bold text-slate-500">مهارات مستخرجة</p>
                             <p className="mt-1 leading-7 text-slate-700">{profile?.extracted_skills?.length ? profile.extracted_skills.join('، ') : 'لا توجد بيانات.'}</p>

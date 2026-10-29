@@ -13,6 +13,7 @@ use App\Models\User;
 use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -64,7 +65,7 @@ class AdminHomepageAdvertisementTest extends TestCase
                 ->component('Admin/Advertisements')
                 ->where('advertisements', [[
                     'id' => $advertisement->id,
-                    'image_url' => Storage::disk('public')->url($advertisement->image_path),
+                    'image_url' => '/media/'.$advertisement->image_path,
                     'alt_text' => 'إعلان قائم',
                     'created_at' => $advertisement->created_at?->toISOString(),
                 ]]));
@@ -474,6 +475,16 @@ class AdminHomepageAdvertisementTest extends TestCase
         $admin = $this->user('admin', 'unsafe-path-'.md5($unsafePath).'@example.com');
         $advertisement = $this->advertisement($unsafePath);
         Storage::disk('public')->put($protectedPath, 'must remain');
+        if (str_contains($unsafePath, "\0") && DB::connection()->getDriverName() === 'pgsql') {
+            // PostgreSQL varchar cannot hold NUL. Inject the unsafe PHP value at
+            // retrieval so this defensive-cleanup case still tests the full path
+            // guard instead of PDO's truncation of the synthetic fixture.
+            Event::listen('eloquent.retrieved: '.HomepageAdvertisement::class, function (HomepageAdvertisement $model) use ($advertisement, $unsafePath): void {
+                if ($model->id === $advertisement->id) {
+                    $model->image_path = $unsafePath;
+                }
+            });
+        }
 
         $this->actingAs($admin)
             ->delete(route('admin.advertisements.destroy', $advertisement, absolute: false))
@@ -606,12 +617,12 @@ class AdminHomepageAdvertisementTest extends TestCase
                 ->where('advertisements', [
                     [
                         'id' => $first->id,
-                        'image_url' => Storage::disk('public')->url($first->image_path),
+                        'image_url' => '/media/'.$first->image_path,
                         'alt_text' => 'الإعلان الأول',
                     ],
                     [
                         'id' => $second->id,
-                        'image_url' => Storage::disk('public')->url($second->image_path),
+                        'image_url' => '/media/'.$second->image_path,
                         'alt_text' => null,
                     ],
                 ])

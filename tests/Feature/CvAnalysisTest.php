@@ -31,9 +31,11 @@ class CvAnalysisTest extends TestCase
     {
         parent::setUp();
 
-        Storage::fake('public');
+        Storage::fake('documents');
+        config(['uploads.legacy_cv_reads' => false]);
         Http::preventStrayRequests();
         config([
+            'services.openai.enabled' => true,
             'app.key' => 'base64:'.base64_encode(str_repeat('a', 32)),
             'services.openai.key' => 'test-key-never-sent-to-a-real-provider',
             'services.openai.model' => 'cv-feature-test-model',
@@ -68,7 +70,7 @@ class CvAnalysisTest extends TestCase
         $this->assertNull($profile->cv_analysis_error_message);
         $this->assertNotNull($profile->cv_analysis_started_at);
         $this->assertNull($profile->cv_analysis_completed_at);
-        Storage::disk('public')->assertExists($profile->cv_path);
+        Storage::disk('documents')->assertExists($profile->cv_path);
 
         Queue::assertPushed(AnalyzeCv::class, function (AnalyzeCv $job) use ($profile): bool {
             $this->assertInstanceOf(ShouldQueue::class, $job);
@@ -91,7 +93,7 @@ class CvAnalysisTest extends TestCase
         ])->assertRedirect('/login');
 
         Queue::assertNothingPushed();
-        $this->assertSame([], Storage::disk('public')->allFiles('cvs'));
+        $this->assertSame([], Storage::disk('documents')->allFiles('cvs'));
     }
 
     /** @return array<string, array{string}> */
@@ -115,7 +117,7 @@ class CvAnalysisTest extends TestCase
         ])->assertForbidden();
 
         Queue::assertNothingPushed();
-        $this->assertSame([], Storage::disk('public')->allFiles('cvs'));
+        $this->assertSame([], Storage::disk('documents')->allFiles('cvs'));
     }
 
     public function test_invalid_mismatched_and_oversized_cv_files_are_rejected_without_storage_or_dispatch(): void
@@ -138,7 +140,7 @@ class CvAnalysisTest extends TestCase
         ]);
 
         Queue::assertNothingPushed();
-        $this->assertSame([], Storage::disk('public')->allFiles('cvs'));
+        $this->assertSame([], Storage::disk('documents')->allFiles('cvs'));
     }
 
     public function test_duplicate_upload_while_processing_is_rejected_and_the_new_orphan_is_removed(): void
@@ -163,7 +165,7 @@ class CvAnalysisTest extends TestCase
         $this->assertSame($firstPath, $profile->cv_path);
         $this->assertSame($firstAttempt, $profile->cv_analysis_attempt_id);
         $this->assertSame('processing', $profile->cv_status);
-        $this->assertSame([$firstPath], Storage::disk('public')->allFiles('cvs'));
+        $this->assertSame([$firstPath], Storage::disk('documents')->allFiles('cvs'));
         Queue::assertPushedTimes(AnalyzeCv::class, 1);
     }
 
@@ -227,7 +229,7 @@ class CvAnalysisTest extends TestCase
         $this->assertNull($profile->cv_analysis_error_code);
         $this->assertNull($profile->cv_analysis_error_message);
         $this->assertNotNull($profile->cv_analysis_completed_at);
-        Storage::disk('public')->assertExists($profile->cv_path);
+        Storage::disk('documents')->assertExists($profile->cv_path);
         Http::assertSentCount(1);
     }
 
@@ -248,7 +250,7 @@ class CvAnalysisTest extends TestCase
             'خدمة تحليل السيرة الذاتية غير متاحة حاليًا. يرجى المحاولة لاحقًا أو التواصل مع إدارة المنصة.',
             $profile->cv_analysis_error_message,
         );
-        Storage::disk('public')->assertExists($profile->cv_path);
+        Storage::disk('documents')->assertExists($profile->cv_path);
         Http::assertNothingSent();
     }
 
@@ -335,8 +337,8 @@ class CvAnalysisTest extends TestCase
             'profile_score' => 41,
             'extracted_skills' => ['Existing skill'],
         ]);
-        Storage::disk('public')->put('cvs/new.pdf', '%PDF new');
-        Storage::disk('public')->put('cvs/old.pdf', '%PDF old');
+        Storage::disk('documents')->put('cvs/new.pdf', '%PDF new');
+        Storage::disk('documents')->put('cvs/old.pdf', '%PDF old');
         $newAttempt = $profile->cv_analysis_attempt_id;
         $job = new AnalyzeCv($profile->id, 'cvs/old.pdf', 'old.pdf', (string) Str::uuid());
         Http::fake(['*' => Http::response(['output_text' => json_encode($this->validProviderResult())])]);
@@ -538,7 +540,7 @@ class CvAnalysisTest extends TestCase
         ]);
 
         if ($storeFile) {
-            Storage::disk('public')->put($path, "non-empty {$extension} test bytes");
+            Storage::disk('documents')->put($path, "non-empty {$extension} test bytes");
         }
 
         return [$profile, new AnalyzeCv($profile->id, $path, "candidate.{$extension}", $attemptId)];
